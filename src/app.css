@@ -11,14 +11,26 @@
   --purple: hsl(280, 85%, 65%);
   --pink: hsl(348, 100%, 61%);
   --brown: hsl(34, 29%, 54%);
+
+  --border:0.5rem;
+
   --grey: hsl(240, 2%, 57%);
   --grey2: hsl(240, 1%, 39%);
   --grey3: hsl(240, 1%, 29%);
   --grey4: hsl(240, 2%, 23%);
   --grey5: hsl(240, 2%, 18%);
   --grey6: hsl(240, 3%, 11%);
+  --accent: hsl(210, 100%, 52%);
 
-  --accent: hsl(135, 64%, 50%);
+  /* 
+  --grey: rgb(242, 242, 247);
+  --grey2: rgb(229, 229, 234);
+  --grey3: rgb(209, 209, 214);
+  --grey4: rgb(199, 199, 204);
+  --grey5: rgb(174, 174, 178);
+  --grey6: rgb(142, 142, 147);
+  --accent: rgb(0, 122, 255);
+  */
 }
 
 ::-webkit-scrollbar {
@@ -37,6 +49,9 @@
   color: var(--white);
   border: none;
   outline: none;
+  overflow: none;
+  word-wrap: break-word;
+  text-align: justify;
 }
 
 html,
@@ -45,7 +60,7 @@ body,
 main {
   height: 100%;
   margin: 0;
-  background-color: var(--grey5);
+  background-color: var(--grey6);
 }
 
 .grid_containerMain {
@@ -125,13 +140,11 @@ button,
 input,
 .Map {
   min-height: 2rem;
-  background-color: var(--grey4);
-  display: grid;
+  background-color: var(--grey5);
   transition: all 0.2s;
-  white-space: nowrap;
   padding: 0.5rem;
-  border-radius: 1rem;
-  box-shadow: 0px 0px 1px 2px var(--grey3) inset;
+  border-radius: var(--border);
+  box-shadow: 0px 0px 1px 2px var(--grey4) inset;
 }
 
 button:active {
@@ -144,6 +157,8 @@ button:active:disabled {
 
 button:disabled {
   box-shadow: none;
+  background-color: var(--red);
+  transition: all 10s;
 }
 
 input:focus,
@@ -170,12 +185,10 @@ svg {
 
 .postStyle {
   margin-bottom: 0.5rem;
-  justify-items: start;
-  align-items: start;
-  background-color: var(--grey4);
+  background-color: var(--grey5);
   padding: 0.5rem;
-  border-radius: 1rem;
-
+  border-radius: var(--border);
+  display: block;
 }
 
 .Map {

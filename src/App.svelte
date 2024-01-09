@@ -40,7 +40,7 @@
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
   //📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜
 
-  let threadArray = [{ id: "ttest" }];
+  let threadArray = [];
   let postArray = [];
 
   onMount(async () => {
@@ -90,40 +90,122 @@
     });
   }
 
+  // function findIdenticalHash(array, hashValue) {
+  //   return new Promise(async(resolve , reject)=>{
+  //     let hashstatus = await array.find((element) => element.hash === hashValue);
+  //     if (hashstatus == true){
+  //       reject('Hash is not new.')
+  //     } else if (hashstatus == false){
+  //       resolve("Hash is good")
+  //     } else{
+  //       alert('Hash has failed. If you are seeing this I broke something. Sorry please come back later.')
+  //       reject()
+  //     }
+  //   })
+  //   return
+  // }
+
+  async function findIdenticalHash(array, hashValue) {
+    return new Promise((resolve, reject) => {
+      let hashStatus = array.find((element) => element.hash === hashValue);
+
+      if (hashStatus) {
+        alert("New Threads need to have unique titles.");
+        reject("Hash is not new.");
+      } else {
+        resolve("Hash is good");
+      }
+    });
+  }
+
   async function createNewThreadAsDoc() {
     //Start by requesting a new geolocation if position data is not already availible
     if (liveLat == null) {
       await liveGeoCheck();
     }
 
-    let newCryptoID = crypto.randomUUID();
-    let newtimestamp = new Date();
-    let newConcatName =
-      newtimestamp.toUTCString() +
-      " " +
-      userInputNewThreadTitle +
-      " " +
-      newCryptoID;
-    //create a new document in the root collection with the following data
-    setDoc(doc(db, "root", newConcatName), {
-      timestamp: serverTimestamp(),
-      title: userInputNewThreadTitle,
-      username: userInputCurrentUsername,
-      location: new GeoPoint(liveLat, liveLong),
-    });
+    let titleNormalized = await normalizeText(userInputNewThreadTitle);
+    let titleNormalizedAndHashed = await hashStringSHA256(titleNormalized);
 
-    //add the title info as the first post in a new map to fix rendering bug
-    const mapData = {
-      text: userInputNewThreadTitle,
-      author: userInputCurrentUsername,
-    };
-    //Merges the data above into the existing mapdata object
-    let lastDoc = doc(collection(db, "root"), newConcatName);
-    setDoc(lastDoc, { posts: arrayUnion(mapData) }, { merge: true });
-    userInputNewPost = "";
+    const identicalHash = await findIdenticalHash(
+      threadArray,
+      titleNormalizedAndHashed,
+    );
+    if (identicalHash == "Hash is good") {
+      let newCryptoID = crypto.randomUUID();
+      let newtimestamp = new Date();
+      let newConcatName =
+        newtimestamp.toUTCString() +
+        " " +
+        userInputNewThreadTitle +
+        " " +
+        newCryptoID;
+      //create a new document in the root collection with the following data
+      setDoc(doc(db, "root", newConcatName), {
+        timestamp: serverTimestamp(),
+        title: userInputNewThreadTitle,
+        username: userInputCurrentUsername,
+        location: new GeoPoint(liveLat, liveLong),
+        nomalized: titleNormalized,
+        hash: titleNormalizedAndHashed,
+      });
 
-    userInputNewThreadTitle = "";
+      //add the title info as the first post in a new map to fix rendering bug
+      const mapData = {
+        text: userInputNewThreadTitle,
+        author: userInputCurrentUsername,
+      };
+      //Merges the data above into the existing mapdata object
+      let lastDoc = doc(collection(db, "root"), newConcatName);
+      setDoc(lastDoc, { posts: arrayUnion(mapData) }, { merge: true });
+      userInputNewPost = "";
+
+      userInputNewThreadTitle = "";
+    }
   }
+
+  async function normalizeText(newString) {
+    return new Promise((resolve, reject) => {
+      newString = newString.replace(/[\u0300-\u036f\u0489]/g, "");
+      newString = newString.replace(
+        /[\u200B-\u200F\uFEFF\u202A-\u202E\u2060-\u206F]/g,
+        "",
+      );
+      newString = newString.replace(/[\s\uFEFF\xA0]+/g, "");
+      newString = newString.normalize("NFC");
+      newString = newString.toUpperCase();
+      resolve(newString);
+    });
+  }
+
+  async function hashStringSHA256(str) {
+    return new Promise(async (resolve, reject) => {
+      // Encode the string into a Uint8Array
+      const encoder = new TextEncoder();
+      const data = encoder.encode(str);
+
+      // Hash the string using SHA-256
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+
+      // Convert the hash to a hex string
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      resolve(hashHex);
+    });
+  }
+
+  let isDisabled = false;
+
+    function disableButtonTimeout() {
+        isDisabled = true;
+        setTimeout(() => {
+            isDisabled = false;
+        }, 10000); 
+    }
+
   //📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜
 
   let conditionalRenderStatus = "home";
@@ -154,7 +236,6 @@
     console.log(threadArray);
     setInterval(hell, 3000);
   }
-
 </script>
 
 <main>
@@ -176,7 +257,12 @@
       </div>
 
       <div class="grid_Map">
-        <div class="Map"></div>
+        <div class="Map">
+          <!-- <gmp-map center="42.39841842651367,-71.14395904541016" zoom="14" map-id="DEMO_MAP_ID">
+            <gmp-advanced-marker position="42.39841842651367,-71.14395904541016" title="My location">
+            </gmp-advanced-marker>
+          </gmp-map> -->
+        </div>
       </div>
 
       <div class="grid_Threads">
@@ -206,7 +292,8 @@
 
       <div class="grid_SendThread">
         <button
-          on:click={createNewThreadAsDoc}
+          on:click={()=>{createNewThreadAsDoc(); disableButtonTimeout();}}
+          disabled={isDisabled}
           class="max2rem"
           aria-label="Create thread"
         >
@@ -228,52 +315,75 @@
 
     <!-- POSTSssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss -->
   {:else if conditionalRenderStatus == "posts"}
-  <div class="grid_containerPosts">
-    <!-- svelte-ignore a11y-distracting-elements -->
-    <div class="grid_PostButtons1"><div class="Map"><marquee>I wanted to put a compass here but programing is hard.</marquee></div></div>
-
-    <div class="Settings">
-      <button on:click={ ()=>{conditionalRenderStatus = "home"}} class="max2rem" aria-label="Return to Threads">
-        <svg width="30" height="30" viewBox="0 0 24 24">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-          <path d="M9 14l-4 -4l4 -4" />
-          <path d="M5 10h11a4 4 0 1 1 0 8h-1" />
-        </svg>
-      </button>
-    </div>
-
-    <div class="grid_Posts">
-      {#each postArray as post}
-        <div class="postStyle">
-          <p>{post.text}</p>
+    <div class="grid_containerPosts">
+      <!-- svelte-ignore a11y-distracting-elements -->
+      <div class="grid_PostButtons1">
+        <div class="Map">
+          <marquee
+            >I wanted to put a compass here but programing is hard.</marquee
+          >
         </div>
-      {/each}
-    </div>
+      </div>
 
-    <div class="grid_PostTextbox">
-      <input
+      <div class="Settings">
+        <button
+          on:click={() => {
+            conditionalRenderStatus = "home";
+          }}
+          class="max2rem"
+          aria-label="Return to Threads"
+        >
+          <svg width="30" height="30" viewBox="0 0 24 24">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M9 14l-4 -4l4 -4" />
+            <path d="M5 10h11a4 4 0 1 1 0 8h-1" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="grid_Posts">
+        {#each postArray as post}
+          <div class="postStyle" style="background-color: var(--grey3);">
+            <p>{post.text}</p>
+          </div>
+        {/each}
+      </div>
+
+      <div class="grid_PostTextbox">
+        <input
           bind:value={userInputNewPost}
           aria-label="Set post text"
           placeholder="Reply to this geo-thread here ..."
         />
-    </div>
+      </div>
 
-    <div class="grid_SendPost">
-      <button
-          on:click={appendDoc}
-          class="max2rem"
-          aria-label="Send Post"
-        >
-        <svg width="30" height="30" viewBox="0 0 24 24" stroke-width="1.5" stroke="#2c3e50" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-          <path d="M10 14l11 -11" />
-          <path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5" />
-        </svg>
+      <div class="grid_SendPost">
+        <button on:click={()=>{appendDoc(); disableButtonTimeout();}} disabled={isDisabled} class="max2rem" aria-label="Send Post">
+          <svg
+            width="30"
+            height="30"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="#2c3e50"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M10 14l11 -11" />
+            <path
+              d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5"
+            />
+          </svg>
         </button>
-    </div>
+      </div>
 
-    <!-- svelte-ignore a11y-distracting-elements -->
-    <div class="grid_PostButtons2"><div class="Map"><marquee> New post functions coming soon! </marquee></div></div>
-  </div>
+      <!-- svelte-ignore a11y-distracting-elements -->
+      <div class="grid_PostButtons2">
+        <div class="Map">
+          <marquee> New post functions coming soon! </marquee>
+        </div>
+      </div>
+    </div>
   {/if}
 </main>
