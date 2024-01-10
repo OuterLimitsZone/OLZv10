@@ -200,3 +200,7 @@ svg {
   display: flex;
   place-items: center;
 }
+
+gmp-map {
+  height: 100%;
+}

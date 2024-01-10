@@ -2,9 +2,14 @@
   //🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗
   //Import posthog settings
   import posthog from "posthog-js";
-  posthog.init("phc_ic3eJOOUVzJAFQiNhrjiSeK1hz5xZU2wmGrF8QFRvFc", {
-    api_host: "https://app.posthog.com",
-  });
+  if (
+    !window.location.host.includes("127.0.0.1") &&
+    !window.location.host.includes("localhost")
+  ) {
+    posthog.init("phc_ic3eJOOUVzJAFQiNhrjiSeK1hz5xZU2wmGrF8QFRvFc", {
+      api_host: "https://app.posthog.com",
+    });
+  }
   //🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
   //Import firebase settings
@@ -199,12 +204,12 @@
 
   let isDisabled = false;
 
-    function disableButtonTimeout() {
-        isDisabled = true;
-        setTimeout(() => {
-            isDisabled = false;
-        }, 10000); 
-    }
+  function disableButtonTimeout() {
+    isDisabled = true;
+    setTimeout(() => {
+      isDisabled = false;
+    }, 10000);
+  }
 
   //📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜
 
@@ -245,7 +250,13 @@
         <input placeholder="Search ..." aria-label="Search threads" />
       </div>
       <div class="grid_Settings">
-        <button class="max2rem" aria-label="Open settings">
+        <button
+          class="max2rem"
+          aria-label="Open settings"
+          on:click={() => {
+            conditionalRenderStatus = "settings";
+          }}
+        >
           <svg width="30" height="30" viewBox="0 0 24 24">
             <path stroke="none" d="M0 0h24v24H0z" fill="none" />
             <path
@@ -257,12 +268,10 @@
       </div>
 
       <div class="grid_Map">
-        <div class="Map">
-          <!-- <gmp-map center="42.39841842651367,-71.14395904541016" zoom="14" map-id="DEMO_MAP_ID">
-            <gmp-advanced-marker position="42.39841842651367,-71.14395904541016" title="My location">
-            </gmp-advanced-marker>
-          </gmp-map> -->
-        </div>
+        <gmp-map center="42.39844512939453,-71.14396667480469" zoom="14" map-id="DEMO_MAP_ID">
+          <gmp-advanced-marker position="42.39844512939453,-71.14396667480469" title="My location">
+          </gmp-advanced-marker>
+        </gmp-map>
       </div>
 
       <div class="grid_Threads">
@@ -292,7 +301,10 @@
 
       <div class="grid_SendThread">
         <button
-          on:click={()=>{createNewThreadAsDoc(); disableButtonTimeout();}}
+          on:click={() => {
+            createNewThreadAsDoc();
+            disableButtonTimeout();
+          }}
           disabled={isDisabled}
           class="max2rem"
           aria-label="Create thread"
@@ -358,7 +370,15 @@
       </div>
 
       <div class="grid_SendPost">
-        <button on:click={()=>{appendDoc(); disableButtonTimeout();}} disabled={isDisabled} class="max2rem" aria-label="Send Post">
+        <button
+          on:click={() => {
+            appendDoc();
+            disableButtonTimeout();
+          }}
+          disabled={isDisabled}
+          class="max2rem"
+          aria-label="Send Post"
+        >
           <svg
             width="30"
             height="30"
@@ -385,5 +405,8 @@
         </div>
       </div>
     </div>
+  {:else if conditionalRenderStatus == "settings"}
+    <h1>Settings comming soon</h1>
+    <button on:click={()=>{conditionalRenderStatus = "home";}}>Go back</button>
   {/if}
 </main>
