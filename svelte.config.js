@@ -1,7 +1,15 @@
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
-
-export default {
-  // Consult https://svelte.dev/docs#compile-time-svelte-preprocess
-  // for more information about preprocessors
-  preprocess: vitePreprocess(),
+// svelte.config.js
+ 
+import { preprocessMeltUI, sequence } from '@melt-ui/pp'
+ 
+const config = {
+  // ... other svelte config options
+  preprocess: sequence([
+    // ... other preprocessors
+    vitePreprocess(),
+    preprocessMeltUI() // add to the end!
+  ])
 }
+ 
+export default config

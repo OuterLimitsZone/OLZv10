@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    ::-webkit-scrollbar {
+        display: none;
+        /* Safari and Chrome */
+    }
+
+    * {
+        border-radius: 0.5rem;
+
+    }
+
+    html,
+    body {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        margin: 0;
+        background-color: bisque;
+        gap: 0.5rem;
+    }
+
+    body {
+        padding: 1rem;
+    }
+
+    .topflex {
+        height: 2rem;
+        background-color: brown;
+    }
+
+    .midflex {
+        flex-grow: 1;
+        background-color: burlywood;
+    }
+
+    .botflex {
+        display: flex;
+        overflow-x: scroll;
+        gap: 0.5rem;
+        padding-left: 4vw;
+        padding-right: 4vw;
+        scroll-snap-type: x proximity;
+
+    }
+
+    .threadColumn {
+        height: 10rem;
+        width: 80vw;
+        background-color: goldenrod;
+        overflow: scroll;
+        flex-shrink: 0;
+        gap: 0.5;
+        scroll-snap-align: center;
+        scroll-snap-type: y proximity;
+
+    }
+
+    .post {
+        height: 8rem;
+        width: 100%;
+        background-color: red;
+        margin-bottom: 0.5rem;
+        scroll-snap-align: center;
+
+    }
+
+</style>
+
+<body>
+
+    <div class="topflex"></div>
+    <div class="midflex"></div>
+    <div class="botflex">
+        <div class="threadColumn">
+            <div class="post"></div>
+            <div class="post"></div>
+            <div class="post"></div>
+            <div class="post"></div>
+            <div class="post"></div>
+            <div class="post"></div>
+            <div class="post"></div>
+
+        </div>
+        <div class="threadColumn"></div>
+        <div class="threadColumn"></div>
+
+    </div>
+
+</body>
+
+</html>
