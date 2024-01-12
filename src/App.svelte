@@ -45,6 +45,56 @@
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
   //📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜
 
+  let shardArray = [];
+  let currentPopover = "createNewThread"
+
+  function pullShardArray() {
+
+  }
+
+   let userInputTitle
+   let userInputLat
+   let userInputLong
+   let userInputHash
+   let userInputTime
+   let userInputName
+   let userInputText
+   let userInputTags
+   let userInputNomalized
+
+  function appendShardArray() {
+
+    let newtimestamp = new Date();
+      let newConcatName =
+        newtimestamp.toUTCString() +
+        " " +
+        userInputNewThreadTitle +
+        " " 
+        ;
+      //create a new document in the root collection with the following data
+      setDoc(doc(db, "root", newConcatName), {
+        timestamp: serverTimestamp(),
+        title: userInputNewThreadTitle,
+        username: userInputCurrentUsername,
+        location: new GeoPoint(liveLat, liveLong),
+        // nomalized: titleNormalized,
+        // hash: titleNormalizedAndHashed,
+      });
+
+      //add the title info as the first post in a new map to fix rendering bug
+      const mapData = {
+        text: userInputNewThreadTitle,
+        author: userInputCurrentUsername,
+      };
+      //Merges the data above into the existing mapdata object
+      let lastDoc = doc(collection(db, "root"), newConcatName);
+      setDoc(lastDoc, { posts: arrayUnion(mapData) }, { merge: true });
+      userInputNewPost = "";
+
+      userInputNewThreadTitle = "";
+    
+  }
+
   let threadArray = [];
   let postArray = [];
 
@@ -134,7 +184,7 @@
 
     const identicalHash = await findIdenticalHash(
       threadArray,
-      titleNormalizedAndHashed,
+      titleNormalizedAndHashed
     );
     if (identicalHash == "Hash is good") {
       let newCryptoID = crypto.randomUUID();
@@ -168,13 +218,13 @@
       userInputNewThreadTitle = "";
     }
   }
-
+//
   async function normalizeText(newString) {
     return new Promise((resolve, reject) => {
       newString = newString.replace(/[\u0300-\u036f\u0489]/g, "");
       newString = newString.replace(
         /[\u200B-\u200F\uFEFF\u202A-\u202E\u2060-\u206F]/g,
-        "",
+        ""
       );
       newString = newString.replace(/[\s\uFEFF\xA0]+/g, "");
       newString = newString.normalize("NFC");
@@ -241,8 +291,86 @@
     console.log(threadArray);
     setInterval(hell, 3000);
   }
+
+  
 </script>
 
+<gmp-map
+  center="42.39844512939453,-71.14396667480469"
+  zoom="14"
+  map-id="DEMO_MAP_ID"
+>
+  <gmp-advanced-marker
+    position="42.39844512939453,-71.14396667480469"
+    title="My location"
+  >
+  </gmp-advanced-marker>
+</gmp-map>
+
+<div class="overlay">
+  <div class="overlayPad">
+
+    <div class="topflex">
+      <button>Create new thread</button>
+      <button>Edit settings</button>
+    </div>
+    <div class="midflex">
+      {#if currentPopover === "createNewThread"}
+      <div class="popover" >
+        <h2>create a new thread</h2>
+        <input type="text" placeholder="title"/>
+        <input type="text" placeholder="location"/>
+        <input type="text" placeholder="name"/>
+        <input type="text" placeholder="time" disabled />
+        <input type="text" placeholder="text" />
+        <input type="text" placeholder="tags" />
+        <button>post</button>
+      </div>
+      {:else if currentPopover === "replyToPost" }
+      <div class="popover"><p>create a new post</p></div>
+      {:else}
+      <div></div>
+      {/if}
+    </div>
+    <div class="botflex">
+      {#each postArray as post}
+        <div class="threadColumn">
+          <div class="post">
+            <p>{post.title}</p>
+          </div>
+        </div>
+      {/each}
+
+      <div class="threadColumn">
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+      </div>
+      <div class="threadColumn">
+        <div class="post"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 
 <main>
   {#if conditionalRenderStatus == "home"}
     <div class="grid_containerMain">
@@ -325,10 +453,10 @@
       </div>
     </div>
 
-    <!-- POSTSssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss -->
+    
   {:else if conditionalRenderStatus == "posts"}
     <div class="grid_containerPosts">
-      <!-- svelte-ignore a11y-distracting-elements -->
+       
       <div class="grid_PostButtons1">
         <div class="Map">
           <marquee
@@ -398,7 +526,7 @@
         </button>
       </div>
 
-      <!-- svelte-ignore a11y-distracting-elements -->
+      
       <div class="grid_PostButtons2">
         <div class="Map">
           <marquee> New post functions coming soon! </marquee>
@@ -409,4 +537,4 @@
     <h1>Settings comming soon</h1>
     <button on:click={()=>{conditionalRenderStatus = "home";}}>Go back</button>
   {/if}
-</main>
+</main> -->

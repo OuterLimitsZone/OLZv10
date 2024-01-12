@@ -12,7 +12,7 @@
   --pink: hsl(348, 100%, 61%);
   --brown: hsl(34, 29%, 54%);
 
-  --border:0.5rem;
+  --border: 0.5rem;
 
   --grey: hsl(240, 2%, 57%);
   --grey2: hsl(240, 1%, 39%);
@@ -38,8 +38,127 @@
 }
 
 * {
+  border-radius: 0.5rem;
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  font-family: Inter,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+
+}
+
+
+
+html,
+body,
+#app {
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+  margin: 0;
+  background-color: transparent;
+}
+
+.overlay {
+  display: flex;
+  flex-direction: column;
+
+  position: absolute;
+
+  height: 100%;
+  width: 100vw;
+  pointer-events: none;
+}
+
+.overlayPad {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  height: 100%;
+  gap: 0.5rem;
+}
+
+.topflex {
+  height: 2rem;
+  pointer-events: auto;
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.midflex {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: inherit;
+  pointer-events: none;
+}
+.botflex {
+  display: flex;
+  overflow-x: scroll;
+  gap: 0.5rem;
+  scroll-snap-type: x proximity;
+  pointer-events: auto;
+}
+
+.popover{
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(240, 255, 240, 0.411);
+  height: 100%;
+  pointer-events: auto;
+
+}
+
+.threadColumn {
+  height: 40vh;
+  width: 96%;
+  background-color: transparent;
+  overflow: scroll;
+  flex-shrink: 0;
+  gap: 0.5;
+  scroll-snap-align: center;
+  scroll-snap-type: y proximity;
+}
+
+.post {
+  min-height: 2rem;
+  max-height: 40vh;
+
+  width: 100%;
+  background-color: red;
+  margin-bottom: 0.5rem;
+  scroll-snap-align: center;
+}
+
+b {
+  color: var(--accent);
+}
+
+button {
+  flex-grow: 1;
+}
+
+@media screen and (min-aspect-ratio: 1/1) {
+  .overlayPad {
+    width: 50vw;
+    height: 100vh;
+  }
+  .threadColumn {
+    height: 100vh;
+  }
+
+  .botflex {
+    overflow-y: hidden;
+  }
+}
+
+/* 
+* {
+  box-sizing: border-box;
+  font-family: Inter,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+  font-size:1rem;
+  font-style:normal;
+  font-variant:	normal;
+  font-weight:500;
   gap: 0.5rem;
   margin: 0;
   padding: 0;
@@ -54,91 +173,8 @@
   text-align: justify;
 }
 
-html,
-body,
-#app,
-main {
-  height: 100%;
-  margin: 0;
-  background-color: var(--grey6);
-}
-
-.grid_containerMain {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  grid-template-areas:
-    "grid_Search grid_Settings"
-    "grid_Map grid_Map"
-    "grid_Threads grid_Threads"
-    "grid_ThreadTextbox grid_SendThread";
-  grid-template-columns: 1fr 5rem;
-  grid-template-rows: 2rem 0.5fr 1fr 2rem;
-
-  padding: 0.5rem;
-}
-.grid_Search {
-  grid-area: grid_Search;
-}
-.grid_Settings {
-  grid-area: grid_Settings;
-}
-.grid_Map {
-  grid-area: grid_Map;
-}
-.grid_Threads {
-  grid-area: grid_Threads;
-  display: block;
-  overflow: scroll;
-}
-.grid_ThreadTextbox {
-  grid-area: grid_ThreadTextbox;
-}
-.grid_SendThread {
-  grid-area: grid_SendThread;
-}
-
-.grid_containerPosts {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  grid-template-areas:
-    "grid_PostButtons1 Settings"
-    "grid_Posts grid_Posts"
-    "grid_PostTextbox grid_SendPost"
-    "grid_PostButtons2 grid_PostButtons2";
-  grid-template-columns: 1fr 5rem;
-  grid-template-rows: 2rem 1fr 2rem 2rem;
-  padding: 0.5rem;
-}
-.grid_PostButtons1 {
-  grid-area: grid_PostButtons1;
-}
-.Settings {
-  grid-area: Settings;
-}
-.grid_Posts {
-  grid-area: grid_Posts;
-  display: block;
-  overflow: scroll;
-}
-.grid_PostTextbox {
-  grid-area: grid_PostTextbox;
-}
-.grid_SendPost {
-  grid-area: grid_SendPost;
-}
-.grid_PostButtons2 {
-  grid-area: grid_PostButtons2;
-}
-
-b {
-  color: var(--accent);
-}
-
 button,
-input,
-.Map {
+input{
   min-height: 2rem;
   background-color: var(--grey5);
   transition: all 0.2s;
@@ -178,10 +214,6 @@ svg {
   stroke-linejoin: round;
 }
 
-/* .centerSvg{
-  align-self: center;
-  justify-self: center;
-} */
 
 .postStyle {
   margin-bottom: 0.5rem;
@@ -203,4 +235,4 @@ svg {
 
 gmp-map {
   height: 100%;
-}
+} */
