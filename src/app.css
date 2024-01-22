@@ -105,7 +105,15 @@ body,
   background-color: rgba(240, 255, 240, 0.411);
   height: 100%;
   pointer-events: auto;
+  justify-content: space-between
+}
 
+.popoverrow{
+  display: flex;
+  flex-direction: row;
+  background-color: rgba(240, 255, 240, 0.411);
+  height: 2rem;
+  pointer-events: auto;
 }
 
 .threadColumn {

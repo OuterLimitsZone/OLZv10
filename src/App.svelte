@@ -43,56 +43,96 @@
   const storage = getStorage(app);
   const db = getFirestore(app);
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-  //📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜
-
-  let shardArray = [];
-  let currentPopover = "createNewThread"
-
-  function pullShardArray() {
-
+  //🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰
+  // Cheking for unique string
+  async function normalizeText(newString) {
+    return new Promise((resolve, reject) => {
+      newString = newString.replace(/[\u0300-\u036f\u0489]/g, "");
+      newString = newString.replace(
+        /[\u200B-\u200F\uFEFF\u202A-\u202E\u2060-\u206F]/g,
+        "",
+      );
+      newString = newString.replace(/[\s\uFEFF\xA0]+/g, "");
+      newString = newString.normalize("NFC");
+      newString = newString.toUpperCase();
+      resolve(newString);
+    });
   }
 
-   let userInputTitle
-   let userInputLat
-   let userInputLong
-   let userInputHash
-   let userInputTime
-   let userInputName
-   let userInputText
-   let userInputTags
-   let userInputNomalized
+  async function hashStringSHA256(str) {
+    return new Promise(async (resolve, reject) => {
+      // Encode the string into a Uint8Array
+      const encoder = new TextEncoder();
+      const data = encoder.encode(str);
+
+      // Hash the string using SHA-256
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+
+      // Convert the hash to a hex string
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      resolve(hashHex);
+    });
+  }
+  //🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰
+  //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
+
+  
+  
+  //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
+  //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
+  //Hello I am building a bad system for getting and saving posts for my website.
+  //Each new thread creates a document in my database and all comments go into an array inside that document.
+  //This creates an unnecessarily large amount of document requests for each user that tries to access my website.
+  //I know a better way to do this would be to come up with some logic to shard a thread array over multiple documents and add pagination.
+  //But this only becomes an issue when I have a ton of users accessing my site and I can't be bothered to figure it out now.
+  //Forgive me for building this awfulness.
+  //The following functions take input from users and upload it to my firestore database
+
+  //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
+
+  let shardArray = [];
+
+  function pullShardArray() {}
+
+  let userInputTitle;
+  let userInputLat;
+  let userInputLong;
+  let userInputHash;
+  let userInputTime;
+  let userInputName;
+  let userInputText;
+  let userInputTags;
+  let userInputNomalized;
 
   function appendShardArray() {
-
     let newtimestamp = new Date();
-      let newConcatName =
-        newtimestamp.toUTCString() +
-        " " +
-        userInputNewThreadTitle +
-        " " 
-        ;
-      //create a new document in the root collection with the following data
-      setDoc(doc(db, "root", newConcatName), {
-        timestamp: serverTimestamp(),
-        title: userInputNewThreadTitle,
-        username: userInputCurrentUsername,
-        location: new GeoPoint(liveLat, liveLong),
-        // nomalized: titleNormalized,
-        // hash: titleNormalizedAndHashed,
-      });
+    let newConcatName =
+      newtimestamp.toUTCString() + " " + userInputNewThreadTitle + " ";
+    //create a new document in the root collection with the following data
+    setDoc(doc(db, "root", newConcatName), {
+      timestamp: serverTimestamp(),
+      title: userInputNewThreadTitle,
+      username: userInputCurrentUsername,
+      location: new GeoPoint(liveLat, liveLong),
+      // nomalized: titleNormalized,
+      // hash: titleNormalizedAndHashed,
+    });
 
-      //add the title info as the first post in a new map to fix rendering bug
-      const mapData = {
-        text: userInputNewThreadTitle,
-        author: userInputCurrentUsername,
-      };
-      //Merges the data above into the existing mapdata object
-      let lastDoc = doc(collection(db, "root"), newConcatName);
-      setDoc(lastDoc, { posts: arrayUnion(mapData) }, { merge: true });
-      userInputNewPost = "";
+    //add the title info as the first post in a new map to fix rendering bug
+    const mapData = {
+      text: userInputNewThreadTitle,
+      author: userInputCurrentUsername,
+    };
+    //Merges the data above into the existing mapdata object
+    let lastDoc = doc(collection(db, "root"), newConcatName);
+    setDoc(lastDoc, { posts: arrayUnion(mapData) }, { merge: true });
+    userInputNewPost = "";
 
-      userInputNewThreadTitle = "";
-    
+    userInputNewThreadTitle = "";
   }
 
   let threadArray = [];
@@ -184,7 +224,7 @@
 
     const identicalHash = await findIdenticalHash(
       threadArray,
-      titleNormalizedAndHashed
+      titleNormalizedAndHashed,
     );
     if (identicalHash == "Hash is good") {
       let newCryptoID = crypto.randomUUID();
@@ -218,39 +258,6 @@
       userInputNewThreadTitle = "";
     }
   }
-//
-  async function normalizeText(newString) {
-    return new Promise((resolve, reject) => {
-      newString = newString.replace(/[\u0300-\u036f\u0489]/g, "");
-      newString = newString.replace(
-        /[\u200B-\u200F\uFEFF\u202A-\u202E\u2060-\u206F]/g,
-        ""
-      );
-      newString = newString.replace(/[\s\uFEFF\xA0]+/g, "");
-      newString = newString.normalize("NFC");
-      newString = newString.toUpperCase();
-      resolve(newString);
-    });
-  }
-
-  async function hashStringSHA256(str) {
-    return new Promise(async (resolve, reject) => {
-      // Encode the string into a Uint8Array
-      const encoder = new TextEncoder();
-      const data = encoder.encode(str);
-
-      // Hash the string using SHA-256
-      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-
-      // Convert the hash to a hex string
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-
-      resolve(hashHex);
-    });
-  }
 
   let isDisabled = false;
 
@@ -260,8 +267,6 @@
       isDisabled = false;
     }, 10000);
   }
-
-  //📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜📜
 
   let conditionalRenderStatus = "home";
   let lastActiveDoc = "";
@@ -287,51 +292,92 @@
     });
   }
 
+  //💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩
+  //Shit code I made to test something once
+
+//   import { Loader } from '@googlemaps/js-api-loader';
+
+// let mapContainer;
+
+// onMount(async () => {
+//   const loader = new Loader({
+//     apiKey: "AIzaSyBc-S84pU1_VSELNci_da0BDkdtu3wu6lk", // Replace with your API key
+//     version: "weekly",
+//   });
+
+//   loader.load().then(() => {
+//     const map = new google.maps.Map(mapContainer, {
+//       center: { lat: -34.397, lng: 150.644 },
+//       zoom: 8,
+//     });
+//   });
+// });
+
+
+
+
+
+
   function hell() {
     console.log(threadArray);
     setInterval(hell, 3000);
   }
-
   
+
+  let currentPopover = "default";
+
+  //🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
 </script>
 
-<gmp-map
+<!-- 🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️ -->
+
+<!-- <gmp-map
   center="42.39844512939453,-71.14396667480469"
   zoom="14"
-  map-id="DEMO_MAP_ID"
+  map-id="9fb0905de1a56702"
 >
   <gmp-advanced-marker
     position="42.39844512939453,-71.14396667480469"
     title="My location"
   >
   </gmp-advanced-marker>
-</gmp-map>
+</gmp-map> -->
 
 <div class="overlay">
   <div class="overlayPad">
-
+    <!-- 🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩 -->
     <div class="topflex">
       <button>Create new thread</button>
       <button>Edit settings</button>
     </div>
+    <!-- 🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕 -->
     <div class="midflex">
-      {#if currentPopover === "createNewThread"}
-      <div class="popover" >
-        <h2>create a new thread</h2>
-        <input type="text" placeholder="title"/>
-        <input type="text" placeholder="location"/>
-        <input type="text" placeholder="name"/>
-        <input type="text" placeholder="time" disabled />
-        <input type="text" placeholder="text" />
-        <input type="text" placeholder="tags" />
-        <button>post</button>
-      </div>
-      {:else if currentPopover === "replyToPost" }
-      <div class="popover"><p>create a new post</p></div>
-      {:else}
-      <div></div>
+      {#if currentPopover === "default"}
+        <div class="popover">
+          <div class="popoverrow">
+            <div>Map: </div>
+            <button>Create a new thread</button>
+          </div>
+          <div class="popoverrow">
+            <button>Create a new thread</button>
+          </div>
+        </div>
+      {:else if currentPopover === "idk"}
+        <div class="popover">
+          <h2>create a new thread</h2>
+          <input type="text" placeholder="title" />
+          <input type="text" placeholder="location" />
+          <input type="text" placeholder="name" />
+          <input type="text" placeholder="time" disabled />
+          <button>post</button>
+        </div>
+      {:else if currentPopover === "replyToPost"}
+        <div class="popover"><p>create a new post</p></div>
+      {:else if currentPopover === "home"}
+        <div></div>
       {/if}
     </div>
+    <!--🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖  -->
     <div class="botflex">
       {#each postArray as post}
         <div class="threadColumn">
@@ -350,19 +396,6 @@
         <div class="post"></div>
         <div class="post"></div>
         <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
       </div>
       <div class="threadColumn">
         <div class="post"></div>
@@ -370,6 +403,7 @@
     </div>
   </div>
 </div>
+
 <!-- 
 <main>
   {#if conditionalRenderStatus == "home"}
