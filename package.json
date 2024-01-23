@@ -16,6 +16,7 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
+    "@googlemaps/extended-component-library": "^0.6.4",
     "@googlemaps/js-api-loader": "^1.16.2",
     "firebase": "^10.7.1",
     "posthog-js": "^1.96.1"

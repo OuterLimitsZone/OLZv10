@@ -1,6 +1,6 @@
 <script>
   //🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗
-  //Import posthog settings
+  //This code connects the project to posthog for analytics
   import posthog from "posthog-js";
   if (
     !window.location.host.includes("127.0.0.1") &&
@@ -12,7 +12,7 @@
   }
   //🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-  //Import firebase settings
+  //This code connects the project to the firestore database
   import { onMount } from "svelte";
   import { initializeApp } from "firebase/app";
   import { getStorage, ref } from "firebase/storage";
@@ -44,7 +44,7 @@
   const db = getFirestore(app);
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
   //🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰
-  // Cheking for unique string
+  //This code proccess user generated text and rejects most spam
   async function normalizeText(newString) {
     return new Promise((resolve, reject) => {
       newString = newString.replace(/[\u0300-\u036f\u0489]/g, "");
@@ -79,18 +79,40 @@
   }
   //🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰
   //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
+  //This code connects the project to the google maps api
+  import { Loader } from "@googlemaps/js-api-loader";
+  let mapOptions = {
+    mapId: "9fb0905de1a56702",
+    disableDefaultUI: true,
+    fullscreenControl: false,
+    center: {
+      lat: 42.398593,
+      lng: -71.144041,
+    },
+    zoom: 14,
+  };
 
-  
-  
+  const loader = new Loader({
+    apiKey: "AIzaSyBc-S84pU1_VSELNci_da0BDkdtu3wu6lk",
+    version: "weekly",
+
+    //...additionalOptions,
+  });
+
+  loader
+    .importLibrary("maps")
+    .then(({ Map }) => {
+      new Map(document.getElementById("map"), mapOptions);
+    })
+    .catch((e) => {
+      alert("error leading the google maps api :(");
+    });
+
   //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
-  //Hello I am building a bad system for getting and saving posts for my website.
-  //Each new thread creates a document in my database and all comments go into an array inside that document.
-  //This creates an unnecessarily large amount of document requests for each user that tries to access my website.
-  //I know a better way to do this would be to come up with some logic to shard a thread array over multiple documents and add pagination.
-  //But this only becomes an issue when I have a ton of users accessing my site and I can't be bothered to figure it out now.
-  //Forgive me for building this awfulness.
-  //The following functions take input from users and upload it to my firestore database
+  //This code uploads user content to the firestore database 
+
+
 
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
 
@@ -293,55 +315,23 @@
   }
 
   //💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩
-  //Shit code I made to test something once
-
-//   import { Loader } from '@googlemaps/js-api-loader';
-
-// let mapContainer;
-
-// onMount(async () => {
-//   const loader = new Loader({
-//     apiKey: "AIzaSyBc-S84pU1_VSELNci_da0BDkdtu3wu6lk", // Replace with your API key
-//     version: "weekly",
-//   });
-
-//   loader.load().then(() => {
-//     const map = new google.maps.Map(mapContainer, {
-//       center: { lat: -34.397, lng: 150.644 },
-//       zoom: 8,
-//     });
-//   });
-// });
-
-
-
-
-
-
-  function hell() {
-    console.log(threadArray);
-    setInterval(hell, 3000);
-  }
+  
   
 
+  //🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛
+  //debugging code
   let currentPopover = "default";
 
+  function logloop() {
+    console.log(threadArray);
+    setInterval(logloop, 3000);
+  }
+  
   //🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
 </script>
 
 <!-- 🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️ -->
-
-<!-- <gmp-map
-  center="42.39844512939453,-71.14396667480469"
-  zoom="14"
-  map-id="9fb0905de1a56702"
->
-  <gmp-advanced-marker
-    position="42.39844512939453,-71.14396667480469"
-    title="My location"
-  >
-  </gmp-advanced-marker>
-</gmp-map> -->
+<div id="map" style="height: 100%; border-radius:0%; "></div>
 
 <div class="overlay">
   <div class="overlayPad">
@@ -355,9 +345,10 @@
       {#if currentPopover === "default"}
         <div class="popover">
           <div class="popoverrow">
-            <div>Map: </div>
+            <div>Map:</div>
             <button>Create a new thread</button>
           </div>
+
           <div class="popoverrow">
             <button>Create a new thread</button>
           </div>
@@ -403,172 +394,3 @@
     </div>
   </div>
 </div>
-
-<!-- 
-<main>
-  {#if conditionalRenderStatus == "home"}
-    <div class="grid_containerMain">
-      <div class="grid_Search">
-        <input placeholder="Search ..." aria-label="Search threads" />
-      </div>
-      <div class="grid_Settings">
-        <button
-          class="max2rem"
-          aria-label="Open settings"
-          on:click={() => {
-            conditionalRenderStatus = "settings";
-          }}
-        >
-          <svg width="30" height="30" viewBox="0 0 24 24">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-            <path
-              d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"
-            />
-            <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
-          </svg>
-        </button>
-      </div>
-
-      <div class="grid_Map">
-        <gmp-map center="42.39844512939453,-71.14396667480469" zoom="14" map-id="DEMO_MAP_ID">
-          <gmp-advanced-marker position="42.39844512939453,-71.14396667480469" title="My location">
-          </gmp-advanced-marker>
-        </gmp-map>
-      </div>
-
-      <div class="grid_Threads">
-        {#each threadArray as thread}
-          <button
-            on:click={() => {
-              lastActiveDoc = thread.id;
-              conditionalRenderStatus = "posts";
-              updateChatArray();
-            }}
-            class="postStyle"
-            aria-label="Open thread"
-          >
-            <b>{thread.username}</b>
-            {thread.title}
-          </button>
-        {/each}
-      </div>
-
-      <div class="grid_ThreadTextbox">
-        <input
-          bind:value={userInputNewThreadTitle}
-          aria-label="Set thread name"
-          placeholder="Create a geo-thread here ..."
-        />
-      </div>
-
-      <div class="grid_SendThread">
-        <button
-          on:click={() => {
-            createNewThreadAsDoc();
-            disableButtonTimeout();
-          }}
-          disabled={isDisabled}
-          class="max2rem"
-          aria-label="Create thread"
-        >
-          <svg width="28" height="28" viewBox="0 0 24 24">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-            <path
-              d="M21.498 12.911l.206 -.208a.984 .984 0 0 0 0 -1.407l-8.845 -8.948a1.233 1.233 0 0 0 -1.718 0l-8.845 8.949a.984 .984 0 0 0 0 1.407l8.845 8.949a1.234 1.234 0 0 0 1.718 -.001l.08 -.081"
-            />
-            <path
-              d="M2 12c.004 .086 .103 .178 .296 .246l8.845 2.632c.459 .163 1.259 .163 1.718 0l2.634 -.784m5.41 -1.61l.801 -.238c.195 -.07 .294 -.156 .296 -.243"
-            />
-            <path d="M12 2.12v19.76" />
-            <path d="M16 19h6" />
-            <path d="M19 16v6" />
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    
-  {:else if conditionalRenderStatus == "posts"}
-    <div class="grid_containerPosts">
-       
-      <div class="grid_PostButtons1">
-        <div class="Map">
-          <marquee
-            >I wanted to put a compass here but programing is hard.</marquee
-          >
-        </div>
-      </div>
-
-      <div class="Settings">
-        <button
-          on:click={() => {
-            conditionalRenderStatus = "home";
-          }}
-          class="max2rem"
-          aria-label="Return to Threads"
-        >
-          <svg width="30" height="30" viewBox="0 0 24 24">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-            <path d="M9 14l-4 -4l4 -4" />
-            <path d="M5 10h11a4 4 0 1 1 0 8h-1" />
-          </svg>
-        </button>
-      </div>
-
-      <div class="grid_Posts">
-        {#each postArray as post}
-          <div class="postStyle" style="background-color: var(--grey3);">
-            <p>{post.text}</p>
-          </div>
-        {/each}
-      </div>
-
-      <div class="grid_PostTextbox">
-        <input
-          bind:value={userInputNewPost}
-          aria-label="Set post text"
-          placeholder="Reply to this geo-thread here ..."
-        />
-      </div>
-
-      <div class="grid_SendPost">
-        <button
-          on:click={() => {
-            appendDoc();
-            disableButtonTimeout();
-          }}
-          disabled={isDisabled}
-          class="max2rem"
-          aria-label="Send Post"
-        >
-          <svg
-            width="30"
-            height="30"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="#2c3e50"
-            fill="none"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-            <path d="M10 14l11 -11" />
-            <path
-              d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5"
-            />
-          </svg>
-        </button>
-      </div>
-
-      
-      <div class="grid_PostButtons2">
-        <div class="Map">
-          <marquee> New post functions coming soon! </marquee>
-        </div>
-      </div>
-    </div>
-  {:else if conditionalRenderStatus == "settings"}
-    <h1>Settings comming soon</h1>
-    <button on:click={()=>{conditionalRenderStatus = "home";}}>Go back</button>
-  {/if}
-</main> -->
