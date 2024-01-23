@@ -34,13 +34,14 @@
 }
 
 ::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
+  display: none;
+  /* Safari and Chrome */
 }
 
 * {
   border-radius: 0.5rem;
   box-sizing: border-box;
-  font-family: Inter,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
 
 }
 
@@ -91,6 +92,7 @@ body,
   overflow: inherit;
   pointer-events: none;
 }
+
 .botflex {
   display: flex;
   overflow-x: scroll;
@@ -99,16 +101,17 @@ body,
   pointer-events: auto;
 }
 
-.popover{
+.popover {
   display: flex;
   flex-direction: column;
-  background-color: rgba(240, 255, 240, 0.411);
   height: 100%;
   pointer-events: auto;
-  justify-content: space-between
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: end;
 }
 
-.popoverrow{
+.popoverrow {
   display: flex;
   flex-direction: row;
   background-color: rgba(240, 255, 240, 0.411);
@@ -142,14 +145,52 @@ b {
 }
 
 button {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
   flex-grow: 1;
+  justify-content: center;
+  align-items: center;
 }
+
+.squarebutton {
+  flex-grow: 0;
+  width: 3rem;
+  height: 3rem;
+}
+
+.boundCoords {
+  width: 50%;
+}
+
+.target {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  margin: auto;
+  padding: 0;
+}
+
+.touchTransparent {
+  pointer-events: none;
+
+}
+
+svg {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 0.08rem;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 
 @media screen and (min-aspect-ratio: 1/1) {
   .overlayPad {
     width: 50vw;
     height: 100vh;
   }
+
   .threadColumn {
     height: 100vh;
   }
@@ -214,13 +255,6 @@ input::placeholder {
   color: var(--grey);
 }
 
-svg {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 0.08rem;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 
 
 .postStyle {

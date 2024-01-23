@@ -81,46 +81,98 @@
   //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
   //This code connects the project to the google maps api
   import { Loader } from "@googlemaps/js-api-loader";
+
   let mapOptions = {
     mapId: "9fb0905de1a56702",
     disableDefaultUI: true,
     fullscreenControl: false,
     center: {
-      lat: 42.398593,
-      lng: -71.144041,
+      lat: 42.39859201048314,
+      lng: -71.14404203872255,
     },
+
     zoom: 14,
   };
 
   const loader = new Loader({
     apiKey: "AIzaSyBc-S84pU1_VSELNci_da0BDkdtu3wu6lk",
     version: "weekly",
-
+    mapIds: ["9fb0905de1a56702"],
     //...additionalOptions,
   });
 
+  let map;
+  let coords;
+  let targetLat = 42.398593;
+  let targetLng = -71.144041;
+  let one = 1;
   loader
     .importLibrary("maps")
     .then(({ Map }) => {
-      new Map(document.getElementById("map"), mapOptions);
+      map = new Map(document.getElementById("map"), mapOptions);
+      map.addListener("center_changed", () => {
+        let center = map.getCenter();
+        targetLat = center.lat();
+        targetLng = center.lng();
+        //console.log(targetLat, targetLng, ++one);
+      });
     })
     .catch((e) => {
       alert("error leading the google maps api :(");
     });
 
   //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
+  //🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐
+  //This code calls the geolocation api to set the map at the users current location
+  const options = {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: 0,
+  };
+
+  function moveMapToCurrentLocation() {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          console.log("Latitude: " + latitude + ", Longitude: " + longitude);
+          map.setCenter({ lat: latitude, lng: longitude });
+        },
+        function (error) {
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              console.error("User denied the request for geolocation.");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              console.error("Location information is unavailable.");
+              break;
+            case error.TIMEOUT:
+              console.error("The request to get user location timed out.");
+              break;
+          }
+        },
+        options,
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  }
+  //🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
-  //This code uploads user content to the firestore database 
-
-
+  //This code uploads user content to the firestore database
 
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
+  //📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡
+  //This code downloads user content from the firestore database when the site is opened
+  let currentPopover = "PopoverinitialState";
+
+  //📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡
 
   let shardArray = [];
 
   function pullShardArray() {}
-
-  let userInputTitle;
+  let userInputCurrentUsername = "Anon";
   let userInputLat;
   let userInputLong;
   let userInputHash;
@@ -177,7 +229,7 @@
     fetchRootData();
   });
 
-  let userInputCurrentUsername = "Anon";
+  // let userInputCurrentUsername = "Anon";
   let userInputNewThreadTitle = "";
   let userInputNewPost = "";
   let liveLong = null;
@@ -315,48 +367,93 @@
   }
 
   //💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩
-  
-  
 
   //🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛
   //debugging code
-  let currentPopover = "default";
 
   function logloop() {
     console.log(threadArray);
     setInterval(logloop, 3000);
   }
-  
+
   //🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
 </script>
 
 <!-- 🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️ -->
 <div id="map" style="height: 100%; border-radius:0%; "></div>
-
+<svg
+  class="target , touchTransparent"
+  width="44"
+  height="44"
+  viewBox="0 0 24 24"
+>
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <circle cx="12" cy="12" r=".5" fill="currentColor" />
+  <path d="M12 12m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+  <path d="M12 3l0 2" />
+  <path d="M3 12l2 0" />
+  <path d="M12 19l0 2" />
+  <path d="M19 12l2 0" />
+</svg>
 <div class="overlay">
   <div class="overlayPad">
     <!-- 🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩 -->
-    <div class="topflex">
+    <!-- <div class="topflex">
       <button>Create new thread</button>
-      <button>Edit settings</button>
-    </div>
+      <button
+        on:click={() => { 
+          currentPopover = "PopoverSettingsState";
+        }}>Edit settings</button
+      >
+    </div> -->
     <!-- 🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕 -->
     <div class="midflex">
-      {#if currentPopover === "default"}
-        <div class="popover">
-          <div class="popoverrow">
-            <div>Map:</div>
-            <button>Create a new thread</button>
+      {#if currentPopover === "PopoverinitialState"}
+        <div class="popover , touchTransparent">
+          <div class="popoverrow" style="width: 100%;">
+            <button
+              on:click={() => {
+                let targetClipboard = targetLat + ", " + targetLng;
+                navigator.clipboard.writeText(targetClipboard);
+              }}>Coordinates: {targetLat} {targetLng}</button
+            >
           </div>
-
-          <div class="popoverrow">
-            <button>Create a new thread</button>
+          <div class="popover">
+            <button class="squarebutton">
+              <svg
+                width="44"
+                height="44"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+                <path d="M9 12h6" />
+                <path d="M12 9v6" />
+              </svg>
+            </button>
+            <button class="squarebutton" on:click={moveMapToCurrentLocation}>
+              <svg
+                width="44"
+                height="44"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                <path d="M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0 -16 0" />
+                <path d="M12 2l0 2" />
+                <path d="M12 20l0 2" />
+                <path d="M20 12l2 0" />
+                <path d="M2 12l2 0" />
+              </svg>
+            </button>
           </div>
         </div>
-      {:else if currentPopover === "idk"}
+      {:else if currentPopover === "PopoverSettingsState"}
         <div class="popover">
-          <h2>create a new thread</h2>
-          <input type="text" placeholder="title" />
+          <h2>Settings</h2>
+          <input type="text" placeholder="Current username" />
           <input type="text" placeholder="location" />
           <input type="text" placeholder="name" />
           <input type="text" placeholder="time" disabled />
