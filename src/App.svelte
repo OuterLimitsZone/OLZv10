@@ -26,8 +26,11 @@
     query,
     orderBy,
     getDoc,
+    getDocs,
     arrayUnion,
     GeoPoint,
+    where,
+    updateDoc,
   } from "firebase/firestore";
 
   const firebaseConfig = {
@@ -161,26 +164,68 @@
   //🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
   //This code uploads user content to the firestore database
+  let userInputCurrentUsername = "Anon";
+  let userInputText;
+
+  let userInputTime;
+  let userInputNomalized;
+  let userInputHash;
+
+  let currentActiveDoc = "FakeDocument";
+
+  //Find the document that is marked active in the posts collection in my database
+  async function findCurrentActiveDoc() {
+    let dbPosts = collection(db, "posts");
+    const q = query(dbPosts, where("active", "==", true));
+    const querySnapshot = await getDocs(q);
+
+    querySnapshot.forEach((doc) => {
+      currentActiveDoc = doc.id;
+      //console.log(currentActiveDoc);
+      //console.log(doc.id, " => ", doc.data());
+    });
+    //AppendMasterArray();
+  }
+
+  findCurrentActiveDoc();
+
+  //Append user OP data to master array
+  function AppendMasterArray() {
+    let currentActiveDocRef = doc(db, "posts", currentActiveDoc);
+    updateDoc(currentActiveDocRef, {
+      MasterArray: arrayUnion({
+        author: "Anon",
+        GeoPoint: new GeoPoint(targetLat, targetLng),
+        timestamp: new Date(),
+        text: userInputText,
+      }),
+    });
+
+    userInputText = "";
+  }
 
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
   //📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡
   //This code downloads user content from the firestore database when the site is opened
+
   let currentPopover = "PopoverinitialState";
+  let masterPostArray = [{}] ;
+  
+  onMount(() => {
+    async function fetchData() {
+    const querySnapshot = await getDocs(collection(db, "posts"));
+    querySnapshot.forEach((doc) => {
+      const dataArray = doc.data().MasterArray;
+      masterPostArray = masterPostArray.concat(dataArray);
+      masterPostArray = masterPostArray
+      console.log(masterPostArray)
+    });
+  }
+    fetchData(); // Fetch data and set the global variable on mount
+  });
 
   //📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡
-
-  let shardArray = [];
-
-  function pullShardArray() {}
-  let userInputCurrentUsername = "Anon";
-  let userInputLat;
-  let userInputLong;
-  let userInputHash;
-  let userInputTime;
-  let userInputName;
-  let userInputText;
-  let userInputTags;
-  let userInputNomalized;
+  //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
 
   function appendShardArray() {
     let newtimestamp = new Date();
@@ -210,54 +255,10 @@
   }
 
   let threadArray = [];
-  let postArray = [];
-
-  onMount(async () => {
-    const fetchRootData = () => {
-      //query the databse for all documents in the root collection
-      const rootCollection = collection(db, "root");
-      const orderedQuery = query(rootCollection, orderBy("timestamp", "desc"));
-      //add a listener to the db and on update clear and rewrite the posts array with new data
-      onSnapshot(orderedQuery, (snapshot) => {
-        threadArray = [];
-        snapshot.forEach((doc) => {
-          threadArray.push({ id: doc.id, ...doc.data() });
-        });
-      });
-    };
-    //loop this function
-    fetchRootData();
-  });
-
-  // let userInputCurrentUsername = "Anon";
   let userInputNewThreadTitle = "";
   let userInputNewPost = "";
   let liveLong = null;
   let liveLat = null;
-
-  function liveGeoCheck() {
-    return new Promise((resolve, reject) => {
-      const options = {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
-      };
-
-      navigator.geolocation.getCurrentPosition(success, error, options);
-
-      function success(geo) {
-        const crd = geo.coords;
-        liveLong = crd.longitude;
-        liveLat = crd.latitude;
-        resolve(); // Resolve the promise after getting the position
-      }
-
-      function error(err) {
-        console.log("unable to access geolocation", err);
-        reject(err); // Reject the promise in case of an error
-      }
-    });
-  }
 
   // function findIdenticalHash(array, hashValue) {
   //   return new Promise(async(resolve , reject)=>{
@@ -287,52 +288,6 @@
     });
   }
 
-  async function createNewThreadAsDoc() {
-    //Start by requesting a new geolocation if position data is not already availible
-    if (liveLat == null) {
-      await liveGeoCheck();
-    }
-
-    let titleNormalized = await normalizeText(userInputNewThreadTitle);
-    let titleNormalizedAndHashed = await hashStringSHA256(titleNormalized);
-
-    const identicalHash = await findIdenticalHash(
-      threadArray,
-      titleNormalizedAndHashed,
-    );
-    if (identicalHash == "Hash is good") {
-      let newCryptoID = crypto.randomUUID();
-      let newtimestamp = new Date();
-      let newConcatName =
-        newtimestamp.toUTCString() +
-        " " +
-        userInputNewThreadTitle +
-        " " +
-        newCryptoID;
-      //create a new document in the root collection with the following data
-      setDoc(doc(db, "root", newConcatName), {
-        timestamp: serverTimestamp(),
-        title: userInputNewThreadTitle,
-        username: userInputCurrentUsername,
-        location: new GeoPoint(liveLat, liveLong),
-        nomalized: titleNormalized,
-        hash: titleNormalizedAndHashed,
-      });
-
-      //add the title info as the first post in a new map to fix rendering bug
-      const mapData = {
-        text: userInputNewThreadTitle,
-        author: userInputCurrentUsername,
-      };
-      //Merges the data above into the existing mapdata object
-      let lastDoc = doc(collection(db, "root"), newConcatName);
-      setDoc(lastDoc, { posts: arrayUnion(mapData) }, { merge: true });
-      userInputNewPost = "";
-
-      userInputNewThreadTitle = "";
-    }
-  }
-
   let isDisabled = false;
 
   function disableButtonTimeout() {
@@ -342,39 +297,11 @@
     }, 10000);
   }
 
-  let conditionalRenderStatus = "home";
-  let lastActiveDoc = "";
-
-  //Edit the current doc
-  function appendDoc() {
-    const mapData = {
-      //Timestamp: serverTimestamp(),
-      text: userInputNewPost,
-      author: userInputCurrentUsername,
-    };
-
-    let lastDoc = doc(collection(db, "root"), lastActiveDoc);
-    setDoc(lastDoc, { posts: arrayUnion(mapData) }, { merge: true });
-    userInputNewPost = "";
-  }
-
-  function updateChatArray() {
-    let docRef = doc(db, "root", lastActiveDoc);
-    onSnapshot(docRef, (doc) => {
-      const data = doc.data();
-      postArray = data.posts;
-    });
-  }
-
   //💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩
 
   //🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛
   //debugging code
 
-  function logloop() {
-    console.log(threadArray);
-    setInterval(logloop, 3000);
-  }
 
   //🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
 </script>
@@ -398,28 +325,27 @@
 <div class="overlay">
   <div class="overlayPad">
     <!-- 🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩 -->
-    <!-- <div class="topflex">
-      <button>Create new thread</button>
-      <button
-        on:click={() => { 
-          currentPopover = "PopoverSettingsState";
-        }}>Edit settings</button
-      >
-    </div> -->
+    <div class="topflex">
+      <div class="popoverrow" style="width: 100%;">
+        <button
+          on:click={() => {
+            let targetClipboard = targetLat + ", " + targetLng;
+            navigator.clipboard.writeText(targetClipboard);
+          }}>Coordinates: {targetLat} {targetLng}</button
+        >
+      </div>
+    </div>
     <!-- 🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕 -->
     <div class="midflex">
       {#if currentPopover === "PopoverinitialState"}
         <div class="popover , touchTransparent">
-          <div class="popoverrow" style="width: 100%;">
-            <button
-              on:click={() => {
-                let targetClipboard = targetLat + ", " + targetLng;
-                navigator.clipboard.writeText(targetClipboard);
-              }}>Coordinates: {targetLat} {targetLng}</button
-            >
-          </div>
           <div class="popover">
-            <button class="squarebutton">
+            <button
+              class="squarebutton"
+              on:click={() => {
+                currentPopover = "PopoverNewOP";
+              }}
+            >
               <svg
                 width="44"
                 height="44"
@@ -450,44 +376,75 @@
             </button>
           </div>
         </div>
-      {:else if currentPopover === "PopoverSettingsState"}
+      {:else if currentPopover === "PopoverNewOP"}
         <div class="popover">
-          <h2>Settings</h2>
-          <input type="text" placeholder="Current username" />
-          <input type="text" placeholder="location" />
-          <input type="text" placeholder="name" />
-          <input type="text" placeholder="time" disabled />
-          <button>post</button>
+          <button
+            class="squarebutton"
+            on:click={() => {
+              currentPopover = "PopoverinitialState";
+            }}
+          >
+            <svg width="44" height="44" viewBox="0 0 24 24">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+              <path d="M10 10l4 4m0 -4l-4 4" />
+            </svg>
+          </button>
         </div>
-      {:else if currentPopover === "replyToPost"}
-        <div class="popover"><p>create a new post</p></div>
-      {:else if currentPopover === "home"}
+        <div class="popover">
+          <div class="popoverrow" style="width: 100%;">
+            <input
+              type="text"
+              style="width: 100%; height:4rem; "
+              placeholder="Make a new Thread"
+              bind:value={userInputText}
+            />
+          </div>
+          <button class="squarebutton" on:click={AppendMasterArray}>
+            <svg width="44" height="44" viewBox="0 0 24 24">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+              <path d="M15 9l-6 6" />
+              <path d="M15 15v-6h-6" />
+            </svg>
+          </button>
+        </div>
+      {:else if currentPopover === "PopoverReply"}
         <div></div>
       {/if}
     </div>
     <!--🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖  -->
     <div class="botflex">
-      {#each postArray as post}
+      {#each masterPostArray as post}
         <div class="threadColumn">
           <div class="post">
-            <p>{post.title}</p>
+            Anon: {post.text}
           </div>
         </div>
       {/each}
+<!-- 
+      <div class="threadColumn">
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+        <div class="post"></div>
+      </div>
+
+      <div class="threadColumn">
+        <div class="post"></div>
+        <div class="post"></div>
+      </div>
 
       <div class="threadColumn">
         <div class="post"></div>
         <div class="post"></div>
         <div class="post"></div>
         <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-      </div>
-      <div class="threadColumn">
-        <div class="post"></div>
-      </div>
+      </div> -->
     </div>
   </div>
 </div>
