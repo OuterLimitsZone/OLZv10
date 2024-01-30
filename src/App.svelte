@@ -13,7 +13,7 @@
   //🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
   //This code connects the project to the firestore database
-  import { onMount , onDestroy } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { initializeApp } from "firebase/app";
   import { getStorage, ref } from "firebase/storage";
   import {
@@ -171,9 +171,10 @@
   let userInputCurrentUsername = "Anon";
   let userInputText;
   let currentActiveDoc = "mvpdoc";
+  let currentActiveDocRef = doc(db, "threads", currentActiveDoc);
 
   async function createNewThread() {
-    let currentActiveDocRef = doc(db, "threads", currentActiveDoc);
+    let arrayID = crypto.randomUUID();
 
     let threadData = [
       {
@@ -181,12 +182,25 @@
         GeoPoint: new GeoPoint(targetLat, targetLng),
         timestamp: new Date(),
         text: userInputText,
+        ReplyID: arrayID,
       },
     ];
 
-    await updateDoc(currentActiveDocRef, { [crypto.randomUUID()]: threadData });
+    await updateDoc(currentActiveDocRef, { [arrayID]: threadData });
 
     userInputText = "";
+  }
+  //PostID is updated in the DOM
+  let postID = "error";
+  async function replyInThread() {
+    let replyData = {
+        author: "Anon",
+        timestamp: new Date(),
+        text: userInputText,
+      }
+  await updateDoc(currentActiveDocRef, { [postID]: arrayUnion(replyData) } );
+  userInputText = "";
+
   }
 
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
@@ -210,25 +224,28 @@
   }
 
   function subscribeToData() {
-  return onSnapshot(collection(db, "threads"),
-    (querySnapshot) => {
-      let tempArray = [];
-      querySnapshot.forEach((doc) => {
-        tempArray.push(...Object.values(doc.data()));
-      });
-      masterPostArray = tempArray; // Update the array to trigger reactivity in Svelte
-    },
-    (error) => {
-      console.log("Error fetching data:", error);
-    }
-  );
-}
+    const queryRef = query(collection(db, "threads"));
 
+    return onSnapshot(
+      queryRef,
+      (querySnapshot) => {
+        let tempArray = [];
+        querySnapshot.forEach((doc) => {
+          tempArray.push(...Object.values(doc.data()));
+        });
+        masterPostArray = tempArray; // Update the array to trigger reactivity in Svelte
+        console.log(masterPostArray);
+      },
+      (error) => {
+        console.log("Error fetching data:", error);
+      },
+    );
+  }
 
   let unsubscribe;
 
   onMount(() => {
-    fetchData(); 
+    fetchData();
     unsubscribe = subscribeToData();
   });
 
@@ -237,7 +254,6 @@
       unsubscribe(); // Unsubscribe when the component is destroyed
     }
   });
-  console.log(masterPostArray);
 
   //📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡
   //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
@@ -302,8 +318,6 @@
     ],
     [{ text: "thread op 4" }, { text: "reply 1" }, { text: "reply 2" }],
   ];
-
-  console.log(testarray);
 
   //🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
 </script>
@@ -412,7 +426,38 @@
           </button>
         </div>
       {:else if currentPopover === "PopoverReply"}
-        <div></div>
+        <div class="popover">
+          <button
+            class="squarebutton"
+            on:click={() => {
+              currentPopover = "PopoverinitialState";
+            }}
+          >
+            <svg width="44" height="44" viewBox="0 0 24 24">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+              <path d="M10 10l4 4m0 -4l-4 4" />
+            </svg>
+          </button>
+        </div>
+        <div class="popover">
+          <div class="popoverrow" style="width: 100%;">
+            <input
+              type="text"
+              style="width: 100%; height:4rem; "
+              placeholder="Send a Reply"
+              bind:value={userInputText}
+            />
+          </div>
+          <button on:click={replyInThread} class="squarebutton">
+            <svg width="44" height="44" viewBox="0 0 24 24">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+              <path d="M15 9l-6 6" />
+              <path d="M15 15v-6h-6" />
+            </svg>
+          </button>
+        </div>
       {/if}
     </div>
     <!--🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖  -->
@@ -422,7 +467,19 @@
           <div class="threadColumn">
             {#each threadColumn as post}
               <div class="post">
-                Anon: {post.text}
+                <div class="popoverrow">
+                  <button>Anon</button>
+                  <button>Share</button>
+                  <button>Like</button>
+                  <button
+                    on:click={() => {
+                      currentPopover = "PopoverReply";
+                      postID = post.ReplyID;
+                      return postID;
+                    }}>Reply</button
+                  >
+                </div>
+                {post.text}
               </div>
             {/each}
           </div>

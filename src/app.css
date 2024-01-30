@@ -114,9 +114,9 @@ body,
 .popoverrow {
   display: flex;
   flex-direction: row;
-  background-color: rgba(240, 255, 240, 0.411);
   height: 2rem;
   pointer-events: auto;
+  gap:0.5rem;
 }
 
 .threadColumn {
@@ -135,9 +135,10 @@ body,
   max-height: 40vh;
 
   width: 100%;
-  background-color: red;
+  background-color: var(--grey);
   margin-bottom: 0.5rem;
   scroll-snap-align: center;
+  padding: 0.5rem;
 }
 
 b {
