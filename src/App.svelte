@@ -13,7 +13,7 @@
   //🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
   //This code connects the project to the firestore database
-  import { onMount } from "svelte";
+  import { onMount , onDestroy } from "svelte";
   import { initializeApp } from "firebase/app";
   import { getStorage, ref } from "firebase/storage";
   import {
@@ -164,42 +164,27 @@
   //🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
   //This code uploads user content to the firestore database
+  //⚠️⚠️⚠️⚠️⚠️WARNING I HAVE HARD CODED THE REFRENCE DOCUMENT THIS WILL BREAK AT 1MB OF DATA,⚠️⚠️⚠️⚠️⚠️
+  //Note: you will need to come up with a method of recoding how close this document is to 1MB limit, and then move to a new document
+  //when that limit is hit. Also you will need to fix the method for calling data to merge multiple documents. Sorry!
+
   let userInputCurrentUsername = "Anon";
   let userInputText;
+  let currentActiveDoc = "mvpdoc";
 
-  let userInputTime;
-  let userInputNomalized;
-  let userInputHash;
+  async function createNewThread() {
+    let currentActiveDocRef = doc(db, "threads", currentActiveDoc);
 
-  let currentActiveDoc = "FakeDocument";
-
-  //Find the document that is marked active in the posts collection in my database
-  async function findCurrentActiveDoc() {
-    let dbPosts = collection(db, "posts");
-    const q = query(dbPosts, where("active", "==", true));
-    const querySnapshot = await getDocs(q);
-
-    querySnapshot.forEach((doc) => {
-      currentActiveDoc = doc.id;
-      //console.log(currentActiveDoc);
-      //console.log(doc.id, " => ", doc.data());
-    });
-    //AppendMasterArray();
-  }
-
-  findCurrentActiveDoc();
-
-  //Append user OP data to master array
-  function AppendMasterArray() {
-    let currentActiveDocRef = doc(db, "posts", currentActiveDoc);
-    updateDoc(currentActiveDocRef, {
-      MasterArray: arrayUnion({
+    let threadData = [
+      {
         author: "Anon",
         GeoPoint: new GeoPoint(targetLat, targetLng),
         timestamp: new Date(),
         text: userInputText,
-      }),
-    });
+      },
+    ];
+
+    await updateDoc(currentActiveDocRef, { [crypto.randomUUID()]: threadData });
 
     userInputText = "";
   }
@@ -209,56 +194,53 @@
   //This code downloads user content from the firestore database when the site is opened
 
   let currentPopover = "PopoverinitialState";
-  let masterPostArray = [{}] ;
-  
-  onMount(() => {
-    async function fetchData() {
-    const querySnapshot = await getDocs(collection(db, "posts"));
-    querySnapshot.forEach((doc) => {
-      const dataArray = doc.data().MasterArray;
-      masterPostArray = masterPostArray.concat(dataArray);
-      masterPostArray = masterPostArray
-      console.log(masterPostArray)
-    });
+  let masterPostArray = [];
+
+  async function fetchData() {
+    try {
+      const querySnapshot = await getDocs(collection(db, "threads"));
+      let tempArray = [];
+      querySnapshot.forEach((doc) => {
+        tempArray.push(...Object.values(doc.data()));
+      });
+      masterPostArray = tempArray; // Trigger reactivity
+    } catch {
+      console.log("Data Fetch Failed.");
+    }
   }
-    fetchData(); // Fetch data and set the global variable on mount
+
+  function subscribeToData() {
+  return onSnapshot(collection(db, "threads"),
+    (querySnapshot) => {
+      let tempArray = [];
+      querySnapshot.forEach((doc) => {
+        tempArray.push(...Object.values(doc.data()));
+      });
+      masterPostArray = tempArray; // Update the array to trigger reactivity in Svelte
+    },
+    (error) => {
+      console.log("Error fetching data:", error);
+    }
+  );
+}
+
+
+  let unsubscribe;
+
+  onMount(() => {
+    fetchData(); 
+    unsubscribe = subscribeToData();
   });
+
+  onDestroy(() => {
+    if (unsubscribe) {
+      unsubscribe(); // Unsubscribe when the component is destroyed
+    }
+  });
+  console.log(masterPostArray);
 
   //📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡
   //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
-
-  function appendShardArray() {
-    let newtimestamp = new Date();
-    let newConcatName =
-      newtimestamp.toUTCString() + " " + userInputNewThreadTitle + " ";
-    //create a new document in the root collection with the following data
-    setDoc(doc(db, "root", newConcatName), {
-      timestamp: serverTimestamp(),
-      title: userInputNewThreadTitle,
-      username: userInputCurrentUsername,
-      location: new GeoPoint(liveLat, liveLong),
-      // nomalized: titleNormalized,
-      // hash: titleNormalizedAndHashed,
-    });
-
-    //add the title info as the first post in a new map to fix rendering bug
-    const mapData = {
-      text: userInputNewThreadTitle,
-      author: userInputCurrentUsername,
-    };
-    //Merges the data above into the existing mapdata object
-    let lastDoc = doc(collection(db, "root"), newConcatName);
-    setDoc(lastDoc, { posts: arrayUnion(mapData) }, { merge: true });
-    userInputNewPost = "";
-
-    userInputNewThreadTitle = "";
-  }
-
-  let threadArray = [];
-  let userInputNewThreadTitle = "";
-  let userInputNewPost = "";
-  let liveLong = null;
-  let liveLat = null;
 
   // function findIdenticalHash(array, hashValue) {
   //   return new Promise(async(resolve , reject)=>{
@@ -302,6 +284,26 @@
   //🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛
   //debugging code
 
+  let testarray = [
+    [
+      { text: "thread op 1" },
+      { text: "reply 1" },
+      { text: "reply 2" },
+      { text: "reply 3" },
+    ],
+    [{ text: "thread op 2" }, { text: "reply 1" }],
+    [
+      { text: "thread op 3" },
+      { text: "reply 1" },
+      { text: "reply 2" },
+      { text: "reply 3" },
+      { text: "reply 4" },
+      { text: "reply 5" },
+    ],
+    [{ text: "thread op 4" }, { text: "reply 1" }, { text: "reply 2" }],
+  ];
+
+  console.log(testarray);
 
   //🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
 </script>
@@ -400,7 +402,7 @@
               bind:value={userInputText}
             />
           </div>
-          <button class="squarebutton" on:click={AppendMasterArray}>
+          <button class="squarebutton" on:click={createNewThread}>
             <svg width="44" height="44" viewBox="0 0 24 24">
               <path stroke="none" d="M0 0h24v24H0z" fill="none" />
               <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
@@ -415,36 +417,19 @@
     </div>
     <!--🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖  -->
     <div class="botflex">
-      {#each masterPostArray as post}
-        <div class="threadColumn">
-          <div class="post">
-            Anon: {post.text}
+      {#if masterPostArray.length > 0}
+        {#each masterPostArray as threadColumn}
+          <div class="threadColumn">
+            {#each threadColumn as post}
+              <div class="post">
+                Anon: {post.text}
+              </div>
+            {/each}
           </div>
-        </div>
-      {/each}
-<!-- 
-      <div class="threadColumn">
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-      </div>
-
-      <div class="threadColumn">
-        <div class="post"></div>
-        <div class="post"></div>
-      </div>
-
-      <div class="threadColumn">
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-        <div class="post"></div>
-      </div> -->
+        {/each}
+      {:else}
+        <h1>Loading...</h1>
+      {/if}
     </div>
   </div>
 </div>
