@@ -109,6 +109,7 @@
   let targetLat = 42.398593;
   let targetLng = -71.144041;
   let one = 1;
+
   loader
     .importLibrary("maps")
     .then(({ Map }) => {
@@ -119,12 +120,55 @@
         targetLng = center.lng();
         //console.log(targetLat, targetLng, ++one);
       });
+      addAdvancedMarkers(map);
     })
     .catch((e) => {
       alert("error leading the google maps api :(");
     });
-
   //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
+  //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
+  function addAdvancedMarkers(map) {
+    const markerPosition = { lat: 42.398593, lng: -71.144041 };
+    // @ts-ignore
+    const marker = new google.maps.Marker({
+      position: markerPosition,
+      map: map,
+      // icon: {
+      //   url: "path/to/custom/icon.png", // URL to a custom marker icon
+      //   scaledSize: new google.maps.Size(50, 50), // scaling the icon
+      // },
+      // @ts-ignore
+      animation: google.maps.Animation.DROP, // Optional animation
+      title: "Hello World!", // Tooltip text
+    });
+
+    marker.addListener("click", () => {
+      alert("You touched a pin, good for you!");
+    });
+  }
+
+  function createMarkers(mainArray, map) {
+    mainArray.forEach((subArray) => {
+      if (subArray.length > 0 && subArray[0].GeoPoint) {
+        const firstObject = subArray[0];
+        // @ts-ignore
+        const position = new google.maps.LatLng(
+          firstObject.lat,
+          firstObject.lng,
+        );
+
+        // @ts-ignore
+        const marker = new google.maps.Marker({
+          position: position,
+          map: map,
+          // Add any other marker properties here, like title, icon, etc.
+        });
+
+        // Optionally, add more advanced features like info windows here.
+      }
+    });
+  }
+  //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
   //🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐
   //This code calls the geolocation api to set the map at the users current location
   const options = {
@@ -189,18 +233,22 @@
     await updateDoc(currentActiveDocRef, { [arrayID]: threadData });
 
     userInputText = "";
+    currentPopover = "PopoverinitialState";
+
   }
+
   //PostID is updated in the DOM
   let postID = "error";
   async function replyInThread() {
     let replyData = {
-        author: "Anon",
-        timestamp: new Date(),
-        text: userInputText,
-      }
-  await updateDoc(currentActiveDocRef, { [postID]: arrayUnion(replyData) } );
-  userInputText = "";
-
+      author: "Anon",
+      timestamp: new Date(),
+      text: userInputText,
+      ReplyID: postID,
+    };
+    await updateDoc(currentActiveDocRef, { [postID]: arrayUnion(replyData) });
+    userInputText = "";
+    currentPopover = "PopoverinitialState";
   }
 
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
