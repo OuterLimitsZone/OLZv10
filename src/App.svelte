@@ -105,10 +105,8 @@
   });
 
   let map;
-  let coords;
   let targetLat = 42.398593;
   let targetLng = -71.144041;
-  let one = 1;
 
   loader
     .importLibrary("maps")
@@ -126,49 +124,6 @@
       alert("error leading the google maps api :(");
     });
   //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
-  //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
-  function addAdvancedMarkers(map) {
-    const markerPosition = { lat: 42.398593, lng: -71.144041 };
-    // @ts-ignore
-    const marker = new google.maps.Marker({
-      position: markerPosition,
-      map: map,
-      // icon: {
-      //   url: "path/to/custom/icon.png", // URL to a custom marker icon
-      //   scaledSize: new google.maps.Size(50, 50), // scaling the icon
-      // },
-      // @ts-ignore
-      animation: google.maps.Animation.DROP, // Optional animation
-      title: "Hello World!", // Tooltip text
-    });
-
-    marker.addListener("click", () => {
-      alert("You touched a pin, good for you!");
-    });
-  }
-
-  function createMarkers(mainArray, map) {
-    mainArray.forEach((subArray) => {
-      if (subArray.length > 0 && subArray[0].GeoPoint) {
-        const firstObject = subArray[0];
-        // @ts-ignore
-        const position = new google.maps.LatLng(
-          firstObject.lat,
-          firstObject.lng,
-        );
-
-        // @ts-ignore
-        const marker = new google.maps.Marker({
-          position: position,
-          map: map,
-          // Add any other marker properties here, like title, icon, etc.
-        });
-
-        // Optionally, add more advanced features like info windows here.
-      }
-    });
-  }
-  //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
   //🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐
   //This code calls the geolocation api to set the map at the users current location
   const options = {
@@ -218,6 +173,7 @@
   let currentActiveDocRef = doc(db, "threads", currentActiveDoc);
 
   async function createNewThread() {
+    
     let arrayID = crypto.randomUUID();
 
     let threadData = [
@@ -274,10 +230,11 @@
 
           return timestampA - timestampB;
         });
-        
+
         masterPostArray = tempArray; // Update the array to trigger reactivity in Svelte
         console.log("subscribed data updated");
         console.log(masterPostArray);
+        updateMarkers();
       },
       (error) => {
         console.log("Error fetching data:", error);
@@ -287,6 +244,9 @@
 
   let unsubscribe;
 
+  function updateMarkers() {
+    addMarkersFromData(masterPostArray, map);
+  }
   onMount(() => {
     subscribeToData();
     unsubscribe = subscribeToData();
@@ -299,6 +259,56 @@
   });
 
   //📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡
+  //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
+  function addAdvancedMarkers(map) {
+    const markerPosition = { lat: 42.398593, lng: -71.144041 };
+    // @ts-ignore
+    const marker = new google.maps.Marker({
+      position: markerPosition,
+      map: map,
+      // icon: {
+      //   url: "path/to/custom/icon.png", // URL to a custom marker icon
+      //   scaledSize: new google.maps.Size(50, 50), // scaling the icon
+      // },
+      // @ts-ignore
+      animation: google.maps.Animation.DROP, // Optional animation
+      title: "Hello World!", // Tooltip text
+    });
+
+    marker.addListener("click", () => {
+      alert("You touched a pin, good for you!");
+    });
+  }
+
+  function addMarkersFromData(dataArray, map) {
+    dataArray.forEach((subArray) => {
+      if (subArray.length > 0 && subArray[0].GeoPoint) {
+        const { latitude, longitude } = subArray[0].GeoPoint;
+        // @ts-ignore
+        const position = new google.maps.LatLng(latitude, longitude);
+        // @ts-ignore
+        const marker = new google.maps.Marker({
+          position: position,
+          map: map,
+          // Add any other marker properties here
+          title: subArray[0].text, // Example: Use the text for the marker's title
+        });
+
+        // Optional: Add an info window for each marker
+        // @ts-ignore
+
+        const infowindow = new google.maps.InfoWindow({
+          content: `<p>${subArray[0].text}</p>`, // Example content
+        });
+
+        marker.addListener("click", () => {
+          infowindow.open(map, marker);
+        });
+      }
+    });
+  }
+
+  //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
   //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
 
   // function findIdenticalHash(array, hashValue) {
