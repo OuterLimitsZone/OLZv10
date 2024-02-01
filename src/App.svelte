@@ -224,7 +224,7 @@
       {
         author: "Anon",
         GeoPoint: new GeoPoint(targetLat, targetLng),
-        timestamp: new Date(),
+        timestamp: Date.now(),
         text: userInputText,
         ReplyID: arrayID,
       },
@@ -234,7 +234,6 @@
 
     userInputText = "";
     currentPopover = "PopoverinitialState";
-
   }
 
   //PostID is updated in the DOM
@@ -242,7 +241,7 @@
   async function replyInThread() {
     let replyData = {
       author: "Anon",
-      timestamp: new Date(),
+      timestamp: Date.now(),
       text: userInputText,
       ReplyID: postID,
     };
@@ -258,19 +257,6 @@
   let currentPopover = "PopoverinitialState";
   let masterPostArray = [];
 
-  async function fetchData() {
-    try {
-      const querySnapshot = await getDocs(collection(db, "threads"));
-      let tempArray = [];
-      querySnapshot.forEach((doc) => {
-        tempArray.push(...Object.values(doc.data()));
-      });
-      masterPostArray = tempArray; // Trigger reactivity
-    } catch {
-      console.log("Data Fetch Failed.");
-    }
-  }
-
   function subscribeToData() {
     const queryRef = query(collection(db, "threads"));
 
@@ -281,7 +267,16 @@
         querySnapshot.forEach((doc) => {
           tempArray.push(...Object.values(doc.data()));
         });
+        tempArray.sort((a, b) => {
+          // Access the 'timestamp' of the first object in each sub-array
+          let timestampA = a[0].timestamp;
+          let timestampB = b[0].timestamp;
+
+          return timestampA - timestampB;
+        });
+        
         masterPostArray = tempArray; // Update the array to trigger reactivity in Svelte
+        console.log("subscribed data updated");
         console.log(masterPostArray);
       },
       (error) => {
@@ -293,7 +288,7 @@
   let unsubscribe;
 
   onMount(() => {
-    fetchData();
+    subscribeToData();
     unsubscribe = subscribeToData();
   });
 
