@@ -160,6 +160,7 @@
 
   //replyID is updated in the DOM
   let replyID = "error";
+  let geoBindToOP = 'error'
   async function replyInThread() {
     let domid = crypto.randomUUID();
     let replyData = {
@@ -168,6 +169,7 @@
       text: userInputText,
       ReplyID: replyID,
       DOMid: domid,
+      GeoPoint: geoBindToOP
     };
     await updateDoc(currentActiveDocRef, { [replyID]: arrayUnion(replyData) });
     userInputText = "";
@@ -252,16 +254,16 @@
         const marker = new google.maps.Marker({
           position: position,
           map: map,
-          // Add any other marker properties here
           title: subArray[0].text, // Example: Use the text for the marker's title
+          // @ts-ignore
+          animation: google.maps.Animation.DROP, // Optional animation
         });
 
-        // Optional: Add an info window for each marker
         // @ts-ignore
 
-        const infowindow = new google.maps.InfoWindow({
-          content: `<p>${subArray[0].text}</p>`, // Example content
-        });
+        // const infowindow = new google.maps.InfoWindow({
+        //   content: `<p>${subArray[0].text}</p>`, // Example content
+        // });
 
         marker.addListener("click", () => {
           scrollToElement(DOMid);
@@ -533,12 +535,22 @@
               <div class="post" id={post.DOMid}>
                 <div class="popoverrow">
                   <!-- <button>Anon</button>
-                  <button>Share</button>
-                  <button>Like</button> -->
+                  <button>Share</button> -->
+                  <button
+                    on:click={() => {
+                      let temp = post.GeoPoint;
+                      const firebaseTOMapsFormat = {
+                        lat: temp.latitude,
+                        lng: temp.longitude,
+                      };
+                      map.panTo(firebaseTOMapsFormat);
+                    }}>Map</button
+                  >
                   <button
                     on:click={() => {
                       currentPopover = "PopoverReply";
                       replyID = post.ReplyID;
+                      geoBindToOP = post.GeoPoint
                       return replyID;
                     }}>Reply</button
                   >
