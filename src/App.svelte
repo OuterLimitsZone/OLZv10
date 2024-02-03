@@ -46,41 +46,6 @@
   const storage = getStorage(app);
   const db = getFirestore(app);
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-  //🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰
-  //This code proccess user generated text and rejects most spam
-  async function normalizeText(newString) {
-    return new Promise((resolve, reject) => {
-      newString = newString.replace(/[\u0300-\u036f\u0489]/g, "");
-      newString = newString.replace(
-        /[\u200B-\u200F\uFEFF\u202A-\u202E\u2060-\u206F]/g,
-        "",
-      );
-      newString = newString.replace(/[\s\uFEFF\xA0]+/g, "");
-      newString = newString.normalize("NFC");
-      newString = newString.toUpperCase();
-      resolve(newString);
-    });
-  }
-
-  async function hashStringSHA256(str) {
-    return new Promise(async (resolve, reject) => {
-      // Encode the string into a Uint8Array
-      const encoder = new TextEncoder();
-      const data = encoder.encode(str);
-
-      // Hash the string using SHA-256
-      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-
-      // Convert the hash to a hex string
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-
-      resolve(hashHex);
-    });
-  }
-  //🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰
   //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
   //This code connects the project to the google maps api
   import { Loader } from "@googlemaps/js-api-loader";
@@ -93,7 +58,6 @@
       lat: 42.39859201048314,
       lng: -71.14404203872255,
     },
-
     zoom: 14,
   };
 
@@ -118,7 +82,8 @@
         targetLng = center.lng();
         //console.log(targetLat, targetLng, ++one);
       });
-      addAdvancedMarkers(map);
+      //addAdvancedMarkers(map);
+      subscribeToData();
     })
     .catch((e) => {
       alert("error leading the google maps api :(");
@@ -173,8 +138,8 @@
   let currentActiveDocRef = doc(db, "threads", currentActiveDoc);
 
   async function createNewThread() {
-    
     let arrayID = crypto.randomUUID();
+    let domid = crypto.randomUUID();
 
     let threadData = [
       {
@@ -183,6 +148,7 @@
         timestamp: Date.now(),
         text: userInputText,
         ReplyID: arrayID,
+        DOMid: domid,
       },
     ];
 
@@ -192,16 +158,18 @@
     currentPopover = "PopoverinitialState";
   }
 
-  //PostID is updated in the DOM
-  let postID = "error";
+  //replyID is updated in the DOM
+  let replyID = "error";
   async function replyInThread() {
+    let domid = crypto.randomUUID();
     let replyData = {
       author: "Anon",
       timestamp: Date.now(),
       text: userInputText,
-      ReplyID: postID,
+      ReplyID: replyID,
+      DOMid: domid,
     };
-    await updateDoc(currentActiveDocRef, { [postID]: arrayUnion(replyData) });
+    await updateDoc(currentActiveDocRef, { [replyID]: arrayUnion(replyData) });
     userInputText = "";
     currentPopover = "PopoverinitialState";
   }
@@ -242,21 +210,14 @@
     );
   }
 
-  let unsubscribe;
-
   function updateMarkers() {
-    addMarkersFromData(masterPostArray, map);
-  }
-  onMount(() => {
-    subscribeToData();
-    unsubscribe = subscribeToData();
-  });
-
-  onDestroy(() => {
-    if (unsubscribe) {
-      unsubscribe(); // Unsubscribe when the component is destroyed
+    if (masterPostArray.length === 0) {
+      console.log("Empty array");
+      return updateMarkers();
+    } else {
+      addMarkersFromData(masterPostArray, map);
     }
-  });
+  }
 
   //📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡
   //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
@@ -286,6 +247,7 @@
         const { latitude, longitude } = subArray[0].GeoPoint;
         // @ts-ignore
         const position = new google.maps.LatLng(latitude, longitude);
+        let DOMid = subArray[0].DOMid;
         // @ts-ignore
         const marker = new google.maps.Marker({
           position: position,
@@ -302,13 +264,61 @@
         });
 
         marker.addListener("click", () => {
-          infowindow.open(map, marker);
+          scrollToElement(DOMid);
+          //infowindow.open(map, marker);
         });
       }
     });
   }
 
-  //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
+  //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
+  //♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
+  //Scroll snaping functions
+  function scrollToElement(DOMpostID) {
+    const element = document.getElementById(DOMpostID);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }
+  //♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
+  //🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰
+  //This code proccess user generated text and rejects most spam
+  async function normalizeText(newString) {
+    return new Promise((resolve, reject) => {
+      newString = newString.replace(/[\u0300-\u036f\u0489]/g, "");
+      newString = newString.replace(
+        /[\u200B-\u200F\uFEFF\u202A-\u202E\u2060-\u206F]/g,
+        "",
+      );
+      newString = newString.replace(/[\s\uFEFF\xA0]+/g, "");
+      newString = newString.normalize("NFC");
+      newString = newString.toUpperCase();
+      resolve(newString);
+    });
+  }
+
+  async function hashStringSHA256(str) {
+    return new Promise(async (resolve, reject) => {
+      // Encode the string into a Uint8Array
+      const encoder = new TextEncoder();
+      const data = encoder.encode(str);
+
+      // Hash the string using SHA-256
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+
+      // Convert the hash to a hex string
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      resolve(hashHex);
+    });
+  }
+  //🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰
   //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
 
   // function findIdenticalHash(array, hashValue) {
@@ -477,6 +487,7 @@
               <path d="M15 15v-6h-6" />
             </svg>
           </button>
+          <input type=" " />
         </div>
       {:else if currentPopover === "PopoverReply"}
         <div class="popover">
@@ -519,16 +530,16 @@
         {#each masterPostArray as threadColumn}
           <div class="threadColumn">
             {#each threadColumn as post}
-              <div class="post">
+              <div class="post" id={post.DOMid}>
                 <div class="popoverrow">
-                  <button>Anon</button>
+                  <!-- <button>Anon</button>
                   <button>Share</button>
-                  <button>Like</button>
+                  <button>Like</button> -->
                   <button
                     on:click={() => {
                       currentPopover = "PopoverReply";
-                      postID = post.ReplyID;
-                      return postID;
+                      replyID = post.ReplyID;
+                      return replyID;
                     }}>Reply</button
                   >
                 </div>
