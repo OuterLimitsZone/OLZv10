@@ -194,6 +194,7 @@
         text: userInputText,
         ReplyID: arrayID,
         DOMid: domid,
+        alias: PFPseed,
       },
     ];
 
@@ -216,6 +217,7 @@
       ReplyID: replyID,
       DOMid: domid,
       GeoPoint: geoBindToOP,
+      alias: PFPseed,
     };
 
     await updateDoc(currentActiveDocRef, { [replyID]: arrayUnion(replyData) });
@@ -388,18 +390,37 @@
   import { createAvatar } from "@dicebear/core";
   import { loreleiNeutral } from "@dicebear/collection";
 
-  let PFPseed = "Anon";
+  let PFPseed = null;
   let PFPsvg;
 
+  function checkLocalStorage() {
+    if (localStorage.getItem("currentAlias")) {
+      PFPseed = localStorage.getItem("currentAlias");
+      console.log("Loaded seed " + PFPseed);
+    } else {
+      localStorage.setItem("currentAlias", "Anon");
+      console.log("No Seed found creating new default " + PFPseed);
+    }
+  }
+
+  checkLocalStorage();
+
   function generatePFP() {
-    console.log(PFPseed)
     const avatar = createAvatar(loreleiNeutral, {
       seed: PFPseed,
     });
     PFPsvg = avatar.toString();
+    localStorage.setItem("currentAlias", PFPseed);
   }
 
-  $: PFPseed && generatePFP()
+  function generatePFPforPosts(seed) {
+    const avatar = createAvatar(loreleiNeutral, {
+      seed: seed,
+    });
+    return avatar.toString();
+  }
+
+  $: PFPseed && generatePFP() ;
 
   //💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩
   //This is bad dumb code that I regret, but it works.
@@ -412,16 +433,19 @@
     }, 1000);
   }
 
-  let isDisabled = false;
+  let shareText = "Share"
 
-  function disableButtonTimeout() {
-    isDisabled = true;
-    setTimeout(() => {
-      isDisabled = false;
-    }, 10000);
+  function shareLinkText (){
+    shareText = 'Copied!'
+    setTimeout(()=>{
+      shareText = 'Share'
+    },1000)
   }
+  
   //🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛
   //debugging code
+
+
 
   //🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
 </script>
@@ -601,7 +625,6 @@
           your account ID is: {currentUID} <br />
           your account alias is: {PFPseed} <br />
           <input bind:value={PFPseed} type="text" />
-          <button on:click={generatePFP}>Generate new pfp</button>
         </div>
       {/if}
     </div>
@@ -612,14 +635,15 @@
           <div class="threadColumn">
             {#each threadColumn as post}
               <div class="post" id={post.DOMid}>
-                <div class="flexrow , mini">
-                  <button>User</button>
+                <div class="flexrow ">
+                  <button style="flex-direction: row; gap:0.5rem;">{@html generatePFPforPosts(post.alias)} {post.alias}</button>
                   <button
                     on:click={() => {
                       let temp2 = post.DOMid;
                       let url = "https://outerlimits.zone/?GoTo=" + temp2;
                       navigator.clipboard.writeText(url);
-                    }}>Share</button
+                      shareLinkText()
+                    }}>{shareText}</button
                   >
                   <button
                     on:click={() => {
