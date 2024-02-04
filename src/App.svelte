@@ -1,6 +1,7 @@
 <script>
   //🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗
   //This code connects the project to posthog for analytics
+  //TODO: add in better cohort tracking
   import posthog from "posthog-js";
   if (
     !window.location.host.includes("127.0.0.1") &&
@@ -13,6 +14,7 @@
   //🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗🐗
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
   //This code connects the project to the firestore database
+  //TODO: Nothing, this code is fine
   import { onMount, onDestroy } from "svelte";
   import { initializeApp } from "firebase/app";
   import { getStorage, ref } from "firebase/storage";
@@ -48,6 +50,8 @@
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
   //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
   //This code connects the project to the google maps api
+  //TODO: Nothing, this code is fine
+
   import { Loader } from "@googlemaps/js-api-loader";
 
   let mapOptions = {
@@ -80,9 +84,7 @@
         let center = map.getCenter();
         targetLat = center.lat();
         targetLng = center.lng();
-        //console.log(targetLat, targetLng, ++one);
       });
-      //addAdvancedMarkers(map);
       subscribeToData();
     })
     .catch((e) => {
@@ -91,6 +93,8 @@
   //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
   //🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐
   //This code calls the geolocation api to set the map at the users current location
+  //TODO: I should probably guide a user to enable geolocation if they want it in the future.
+  
   const options = {
     enableHighAccuracy: true,
     timeout: 5000,
@@ -128,11 +132,11 @@
   //🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
   //This code uploads user content to the firestore database
+  //TODO: Come up with a better solution
   //⚠️⚠️⚠️⚠️⚠️WARNING I HAVE HARD CODED THE REFRENCE DOCUMENT THIS WILL BREAK AT 1MB OF DATA,⚠️⚠️⚠️⚠️⚠️
   //Note: you will need to come up with a method of recoding how close this document is to 1MB limit, and then move to a new document
   //when that limit is hit. Also you will need to fix the method for calling data to merge multiple documents. Sorry!
 
-  let userInputCurrentUsername = "Anon";
   let userInputText;
   let currentActiveDoc = "mvpdoc";
   let currentActiveDocRef = doc(db, "threads", currentActiveDoc);
@@ -180,6 +184,7 @@
 
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
   //📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡
+  //TODO: Nothing, this code is fine
   //This code downloads user content from the firestore database when the site is opened
 
   let currentPopover = "PopoverinitialState";
@@ -225,25 +230,8 @@
 
   //📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡
   //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
-  function addAdvancedMarkers(map) {
-    const markerPosition = { lat: 42.398593, lng: -71.144041 };
-    // @ts-ignore
-    const marker = new google.maps.Marker({
-      position: markerPosition,
-      map: map,
-      // icon: {
-      //   url: "path/to/custom/icon.png", // URL to a custom marker icon
-      //   scaledSize: new google.maps.Size(50, 50), // scaling the icon
-      // },
-      // @ts-ignore
-      animation: google.maps.Animation.DROP, // Optional animation
-      title: "Hello World!", // Tooltip text
-    });
-
-    marker.addListener("click", () => {
-      alert("You touched a pin, good for you!");
-    });
-  }
+  //This code adds makers for each post to the map
+  //TODO: add in custom svg and add thread aging function
 
   function addMarkersFromData(dataArray, map) {
     dataArray.forEach((subArray) => {
@@ -256,13 +244,16 @@
         const marker = new google.maps.Marker({
           position: position,
           map: map,
+          // icon: {
+          //   url: "path/to/custom/icon.png", // URL to a custom marker icon
+          //   scaledSize: new google.maps.Size(50, 50), // scaling the icon
+          // },
           title: subArray[0].text, // Example: Use the text for the marker's title
           // @ts-ignore
           animation: google.maps.Animation.DROP, // Optional animation
         });
 
         // @ts-ignore
-
         // const infowindow = new google.maps.InfoWindow({
         //   content: `<p>${subArray[0].text}</p>`, // Example content
         // });
@@ -275,10 +266,10 @@
       }
     });
   }
-
   //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
   //♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
-  //Scroll snaping functions
+  //Scroll snaping function
+  //TODO: Nothing, this code is fine
   function scrollToElement(DOMpostID) {
     let element = document.getElementById(DOMpostID);
     if (element) {
@@ -290,8 +281,9 @@
   }
 
   //♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
-  //🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰
+  //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
   //This code proccess user generated text and rejects most spam
+  //TODO: Re-implement this server side. 
   async function normalizeText(newString) {
     return new Promise((resolve, reject) => {
       newString = newString.replace(/[\u0300-\u036f\u0489]/g, "");
@@ -324,8 +316,6 @@
       resolve(hashHex);
     });
   }
-  //🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰
-  //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
 
   // function findIdenticalHash(array, hashValue) {
   //   return new Promise(async(resolve , reject)=>{
@@ -354,6 +344,17 @@
       }
     });
   }
+  //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
+  //💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩
+  //This is bad dumb code that I regret, but it works.
+
+  let urlparams = new URLSearchParams(window.location.search);
+  let urlparamsGoTo = urlparams.get("GoTo");
+  $: if (masterPostArray.length > 0) {
+    setTimeout(() => {
+      scrollToElement(urlparamsGoTo);
+    }, 1000);
+  }
 
   let isDisabled = false;
 
@@ -363,20 +364,8 @@
       isDisabled = false;
     }, 10000);
   }
-
-  //💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩
-
   //🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛
   //debugging code
-
-  let urlparams = new URLSearchParams(window.location.search);
-  let urlparamsGoTo = urlparams.get("GoTo");
-  //This is bad dumb code that I regret, but it works.
-  $: if (masterPostArray.length > 0) {
-    setTimeout(() => {
-      scrollToElement(urlparamsGoTo);
-    }, 1000);
-  }
 
   //🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
 </script>
@@ -532,7 +521,7 @@
                   <button
                     on:click={() => {
                       let temp2 = post.DOMid;
-                      let url = "https://outerlimits.zone/?GoTo=" + temp2 ;
+                      let url = "https://outerlimits.zone/?GoTo=" + temp2;
                       navigator.clipboard.writeText(url);
                     }}>Share</button
                   >
