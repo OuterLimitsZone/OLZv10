@@ -17,6 +17,13 @@
   //TODO: Nothing, this code is fine
   import { onMount, onDestroy } from "svelte";
   import { initializeApp } from "firebase/app";
+  import {
+    getAuth,
+    signInAnonymously,
+    onAuthStateChanged,
+    setPersistence,
+    browserLocalPersistence,
+  } from "firebase/auth";
   import { getStorage, ref } from "firebase/storage";
   import {
     getFirestore,
@@ -48,6 +55,40 @@
   const storage = getStorage(app);
   const db = getFirestore(app);
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+  //🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂
+
+  const auth = getAuth(app);
+  let currentUID;
+
+  setPersistence(auth, browserLocalPersistence)
+    .then(() => {
+      // Session persistence is set
+    })
+    .catch((error) => {
+      // Handle errors here
+      console.error("Error setting session persistence:", error);
+    });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // User is signed in, see docs for a list of available properties
+      // https://firebase.google.com/docs/reference/js/auth.user
+      currentUID = user.uid;
+      console.log(currentUID);
+    } else {
+      signInAnonymously(auth)
+        .then((userCredential) => {
+          // The user is signed in with an anonymous account
+          const user = userCredential.user;
+          console.log("Anonymous User:", user);
+        })
+        .catch((error) => {
+          // Handle errors here
+          console.error("Error creating anonymous user:", error);
+        });
+    }
+  });
+  //🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂
   //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
   //This code connects the project to the google maps api
   //TODO: Nothing, this code is fine
@@ -94,7 +135,7 @@
   //🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐
   //This code calls the geolocation api to set the map at the users current location
   //TODO: I should probably guide a user to enable geolocation if they want it in the future.
-  
+
   const options = {
     enableHighAccuracy: true,
     timeout: 5000,
@@ -209,8 +250,8 @@
         });
 
         masterPostArray = tempArray; // Update the array to trigger reactivity in Svelte
-        console.log("subscribed data updated");
-        console.log(masterPostArray);
+        // console.log("subscribed data updated");
+        // console.log(masterPostArray);
         updateMarkers();
       },
       (error) => {
@@ -279,11 +320,10 @@
       });
     }
   }
-
   //♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
   //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
   //This code proccess user generated text and rejects most spam
-  //TODO: Re-implement this server side. 
+  //TODO: Re-implement this server side.
   async function normalizeText(newString) {
     return new Promise((resolve, reject) => {
       newString = newString.replace(/[\u0300-\u036f\u0489]/g, "");
@@ -345,6 +385,22 @@
     });
   }
   //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
+  import { createAvatar } from "@dicebear/core";
+  import { loreleiNeutral } from "@dicebear/collection";
+
+  let PFPseed = "Anon";
+  let PFPsvg;
+
+  function generatePFP() {
+    console.log(PFPseed)
+    const avatar = createAvatar(loreleiNeutral, {
+      seed: PFPseed,
+    });
+    PFPsvg = avatar.toString();
+  }
+
+  $: PFPseed && generatePFP()
+
   //💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩
   //This is bad dumb code that I regret, but it works.
 
@@ -390,7 +446,7 @@
   <div class="overlayPad">
     <!-- 🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩 -->
     <div class="topflex">
-      <div class="popoverrow" style="width: 100%;">
+      <div class="flexrow" style="width: 100%;">
         <button
           on:click={() => {
             let targetClipboard = targetLat + ", " + targetLng;
@@ -403,11 +459,12 @@
     <div class="midflex">
       {#if currentPopover === "PopoverinitialState"}
         <div class="popover , touchTransparent">
-          <div class="popover">
+          <div class="flexrow">
             <button
               class="squarebutton"
+              id="AccountAuth"
               on:click={() => {
-                currentPopover = "PopoverNewOP";
+                currentPopover = "PopoverAuth";
               }}
             >
               <svg
@@ -417,9 +474,11 @@
                 stroke-width="1.5"
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
-                <path d="M9 12h6" />
-                <path d="M12 9v6" />
+                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+                <path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+                <path
+                  d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"
+                />
               </svg>
             </button>
             <button class="squarebutton" on:click={moveMapToCurrentLocation}>
@@ -438,8 +497,27 @@
                 <path d="M2 12l2 0" />
               </svg>
             </button>
+            <button
+              class="squarebutton"
+              on:click={() => {
+                currentPopover = "PopoverNewOP";
+              }}
+            >
+              <svg
+                width="44"
+                height="44"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+                <path d="M9 12h6" />
+                <path d="M12 9v6" />
+              </svg>
+            </button>
           </div>
         </div>
+        <!-- 🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕 -->
       {:else if currentPopover === "PopoverNewOP"}
         <div class="popover">
           <button
@@ -454,16 +532,12 @@
               <path d="M10 10l4 4m0 -4l-4 4" />
             </svg>
           </button>
-        </div>
-        <div class="popover">
-          <div class="popoverrow" style="width: 100%;">
-            <input
-              type="text"
-              style="width: 100%; height:4rem; "
-              placeholder="Make a new Thread"
-              bind:value={userInputText}
-            />
-          </div>
+          <input
+            type="text"
+            style="width: 100%; flex-grow:1; "
+            placeholder="Make a new Thread"
+            bind:value={userInputText}
+          />
           <button class="squarebutton" on:click={createNewThread}>
             <svg width="44" height="44" viewBox="0 0 24 24">
               <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -472,8 +546,8 @@
               <path d="M15 15v-6h-6" />
             </svg>
           </button>
-          <input type=" " />
         </div>
+        <!-- ↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️ -->
       {:else if currentPopover === "PopoverReply"}
         <div class="popover">
           <button
@@ -490,7 +564,7 @@
           </button>
         </div>
         <div class="popover">
-          <div class="popoverrow" style="width: 100%;">
+          <div class="flexrow" style="width: 100%;">
             <input
               type="text"
               style="width: 100%; height:4rem; "
@@ -507,6 +581,28 @@
             </svg>
           </button>
         </div>
+        <!-- 🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔 -->
+      {:else if currentPopover === "PopoverAuth"}
+        <div class="popover" style="justify-content:space-between;">
+          <button
+            class="squarebutton"
+            on:click={() => {
+              currentPopover = "PopoverinitialState";
+            }}
+          >
+            <svg width="44" height="44" viewBox="0 0 24 24">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+              <path d="M10 10l4 4m0 -4l-4 4" />
+            </svg>
+          </button>
+          {@html PFPsvg}
+          Welcome, <br />
+          your account ID is: {currentUID} <br />
+          your account alias is: {PFPseed} <br />
+          <input bind:value={PFPseed} type="text" />
+          <button on:click={generatePFP}>Generate new pfp</button>
+        </div>
       {/if}
     </div>
     <!--🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖  -->
@@ -516,8 +612,8 @@
           <div class="threadColumn">
             {#each threadColumn as post}
               <div class="post" id={post.DOMid}>
-                <div class="popoverrow">
-                  <!-- <button>Anon</button> -->
+                <div class="flexrow , mini">
+                  <button>User</button>
                   <button
                     on:click={() => {
                       let temp2 = post.DOMid;

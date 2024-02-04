@@ -106,17 +106,19 @@ body,
   flex-direction: column;
   height: 100%;
   pointer-events: auto;
-  justify-content: space-between;
   gap: 0.5rem;
-  align-items: end;
+  background-color: rgba(250, 249, 249, 85%);
 }
 
-.popoverrow {
+.flexrow {
   display: flex;
   flex-direction: row;
-  height: 2rem;
   pointer-events: auto;
   gap:0.5rem;
+}
+
+.mini{
+  height: 1.5rem;
 }
 
 .threadColumn {
@@ -174,6 +176,7 @@ button {
 
 .touchTransparent {
   pointer-events: none;
+  background-color: transparent;
 
 }
 
