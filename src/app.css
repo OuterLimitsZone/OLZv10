@@ -185,7 +185,7 @@ svg {
   stroke-linejoin: round;
 }
 
-
+/* 
 @media screen and (min-aspect-ratio: 1/1) {
   .overlayPad {
     width: 50vw;
@@ -199,7 +199,7 @@ svg {
   .botflex {
     overflow-y: hidden;
   }
-}
+} */
 
 /* 
 * {

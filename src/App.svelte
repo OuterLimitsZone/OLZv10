@@ -160,7 +160,8 @@
 
   //replyID is updated in the DOM
   let replyID = "error";
-  let geoBindToOP = 'error'
+  let geoBindToOP = "error";
+
   async function replyInThread() {
     let domid = crypto.randomUUID();
     let replyData = {
@@ -169,8 +170,9 @@
       text: userInputText,
       ReplyID: replyID,
       DOMid: domid,
-      GeoPoint: geoBindToOP
+      GeoPoint: geoBindToOP,
     };
+
     await updateDoc(currentActiveDocRef, { [replyID]: arrayUnion(replyData) });
     userInputText = "";
     currentPopover = "PopoverinitialState";
@@ -267,6 +269,7 @@
 
         marker.addListener("click", () => {
           scrollToElement(DOMid);
+          //console.log(DOMid);
           //infowindow.open(map, marker);
         });
       }
@@ -277,7 +280,7 @@
   //♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
   //Scroll snaping functions
   function scrollToElement(DOMpostID) {
-    const element = document.getElementById(DOMpostID);
+    let element = document.getElementById(DOMpostID);
     if (element) {
       element.scrollIntoView({
         behavior: "smooth",
@@ -285,6 +288,7 @@
       });
     }
   }
+
   //♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
   //🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰🎰
   //This code proccess user generated text and rejects most spam
@@ -365,24 +369,14 @@
   //🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛
   //debugging code
 
-  let testarray = [
-    [
-      { text: "thread op 1" },
-      { text: "reply 1" },
-      { text: "reply 2" },
-      { text: "reply 3" },
-    ],
-    [{ text: "thread op 2" }, { text: "reply 1" }],
-    [
-      { text: "thread op 3" },
-      { text: "reply 1" },
-      { text: "reply 2" },
-      { text: "reply 3" },
-      { text: "reply 4" },
-      { text: "reply 5" },
-    ],
-    [{ text: "thread op 4" }, { text: "reply 1" }, { text: "reply 2" }],
-  ];
+  let urlparams = new URLSearchParams(window.location.search);
+  let urlparamsGoTo = urlparams.get("GoTo");
+  //This is bad dumb code that I regret, but it works.
+  $: if (masterPostArray.length > 0) {
+    setTimeout(() => {
+      scrollToElement(urlparamsGoTo);
+    }, 1000);
+  }
 
   //🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
 </script>
@@ -534,8 +528,14 @@
             {#each threadColumn as post}
               <div class="post" id={post.DOMid}>
                 <div class="popoverrow">
-                  <!-- <button>Anon</button>
-                  <button>Share</button> -->
+                  <!-- <button>Anon</button> -->
+                  <button
+                    on:click={() => {
+                      let temp2 = post.DOMid;
+                      let url = "https://outerlimits.zone/?GoTo=" + temp2 ;
+                      navigator.clipboard.writeText(url);
+                    }}>Share</button
+                  >
                   <button
                     on:click={() => {
                       let temp = post.GeoPoint;
@@ -550,7 +550,7 @@
                     on:click={() => {
                       currentPopover = "PopoverReply";
                       replyID = post.ReplyID;
-                      geoBindToOP = post.GeoPoint
+                      geoBindToOP = post.GeoPoint;
                       return replyID;
                     }}>Reply</button
                   >
