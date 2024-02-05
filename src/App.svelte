@@ -24,7 +24,6 @@
     setPersistence,
     browserLocalPersistence,
   } from "firebase/auth";
-  import { getStorage, ref } from "firebase/storage";
   import {
     getFirestore,
     doc,
@@ -39,6 +38,7 @@
     arrayUnion,
     GeoPoint,
     where,
+    addDoc,
     updateDoc,
   } from "firebase/firestore";
 
@@ -51,8 +51,8 @@
     appId: "1:423698149665:web:dd5aa2a7546b06183e8e60",
     measurementId: "G-L4JGZJ79D4",
   };
+
   const app = initializeApp(firebaseConfig);
-  const storage = getStorage(app);
   const db = getFirestore(app);
   //🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
   //🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂
@@ -181,8 +181,18 @@
   let userInputText;
   let currentActiveDoc = "mvpdoc";
   let currentActiveDocRef = doc(db, "threads", currentActiveDoc);
+  let imgUrl = "noimg"
 
   async function createNewThread() {
+    const imageInput = document.getElementById("imageInput");
+
+    // @ts-ignore
+    if (imageInput.files[0]) {
+      await uploadImage().then((url)=>{
+        imgUrl = url
+      })
+    } 
+
     let arrayID = crypto.randomUUID();
     let domid = crypto.randomUUID();
 
@@ -195,6 +205,7 @@
         ReplyID: arrayID,
         DOMid: domid,
         alias: PFPseed,
+        imgRef: imgUrl,
       },
     ];
 
@@ -202,6 +213,7 @@
 
     userInputText = "";
     currentPopover = "PopoverinitialState";
+    imgUrl = 'noimg'
   }
 
   //replyID is updated in the DOM
@@ -226,6 +238,43 @@
   }
 
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
+  //🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️
+  import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL,
+  } from "firebase/storage";
+
+  const storage = getStorage(app);
+
+  async function uploadImage() {
+    return new Promise(async (resolve, reject) => {
+      const imageInput = document.getElementById("imageInput");
+      // @ts-ignore
+      const selectedFile = imageInput.files[0];
+
+      if (selectedFile) {
+        const storageRef = ref(storage, `images/${selectedFile.name}`);
+        try {
+          // Upload the image to Firebase Storage
+          await uploadBytes(storageRef, selectedFile);
+
+          // Get the download URL of the uploaded image
+          const imageUrl = await getDownloadURL(storageRef);
+
+          // Now you can save 'imageUrl' in Firestore or use it to display the image on your site
+          console.log("Image uploaded:", imageUrl);
+          resolve (imageUrl)
+        } catch (error) {
+          console.error("Error uploading image:", error);
+        }
+      } else {
+        console.log("No image selected");
+      }
+    });
+  }
+  //🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️🖼️
   //📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡📡
   //TODO: Nothing, this code is fine
   //This code downloads user content from the firestore database when the site is opened
@@ -387,6 +436,7 @@
     });
   }
   //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
+  //😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏
   import { createAvatar } from "@dicebear/core";
   import { loreleiNeutral } from "@dicebear/collection";
 
@@ -420,8 +470,8 @@
     return avatar.toString();
   }
 
-  $: PFPseed && generatePFP() ;
-
+  $: PFPseed && generatePFP();
+  //😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏
   //💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩
   //This is bad dumb code that I regret, but it works.
 
@@ -433,19 +483,32 @@
     }, 1000);
   }
 
-  let shareText = "Share"
+  let shareText = "Share";
 
-  function shareLinkText (){
-    shareText = 'Copied!'
-    setTimeout(()=>{
-      shareText = 'Share'
-    },1000)
+  function shareLinkText() {
+    shareText = "Copied!";
+    setTimeout(() => {
+      shareText = "Share";
+    }, 1000);
   }
-  
+
+  function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent,
+    );
+  }
+
+  if (isMobileDevice()) {
+    console.log("User is on a mobile device");
+  } else {
+    alert(
+      "This website was built for mobile and is currently broken on desktop. Sorry!",
+    );
+    console.log("User is on a desktop device");
+  }
+
   //🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛
   //debugging code
-
-
 
   //🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑
 </script>
@@ -556,13 +619,21 @@
               <path d="M10 10l4 4m0 -4l-4 4" />
             </svg>
           </button>
+
+          <input type="file" accept="image/*" id="imageInput" />
+
           <input
             type="text"
             style="width: 100%; flex-grow:1; "
             placeholder="Make a new Thread"
             bind:value={userInputText}
           />
-          <button class="squarebutton" on:click={createNewThread}>
+          <button
+            class="squarebutton"
+            on:click={() => {
+              createNewThread();
+            }}
+          >
             <svg width="44" height="44" viewBox="0 0 24 24">
               <path stroke="none" d="M0 0h24v24H0z" fill="none" />
               <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
@@ -570,6 +641,7 @@
               <path d="M15 15v-6h-6" />
             </svg>
           </button>
+
         </div>
         <!-- ↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️ -->
       {:else if currentPopover === "PopoverReply"}
@@ -586,12 +658,11 @@
               <path d="M10 10l4 4m0 -4l-4 4" />
             </svg>
           </button>
-        </div>
-        <div class="popover">
-          <div class="flexrow" style="width: 100%;">
+      
+          <div class="flexrow" style="flex-grow:1;">
             <input
               type="text"
-              style="width: 100%; height:4rem; "
+              style="width: 100%; "
               placeholder="Send a Reply"
               bind:value={userInputText}
             />
@@ -624,7 +695,7 @@
           Welcome, <br />
           your account ID is: {currentUID} <br />
           your account alias is: {PFPseed} <br />
-          <input bind:value={PFPseed} type="text" />
+          <input bind:value={PFPseed} maxlength="20" type="text" />
         </div>
       {/if}
     </div>
@@ -635,14 +706,18 @@
           <div class="threadColumn">
             {#each threadColumn as post}
               <div class="post" id={post.DOMid}>
-                <div class="flexrow ">
-                  <button style="flex-direction: row; gap:0.5rem;">{@html generatePFPforPosts(post.alias)} {post.alias}</button>
+                <div class="flexrow">
+                  <button
+                    style="flex-direction: row;  width: 2rem; height:2rem; overflow:hidden; background-color:#fff;"
+                  >
+                    {@html generatePFPforPosts(post.alias)}</button
+                  >
                   <button
                     on:click={() => {
                       let temp2 = post.DOMid;
                       let url = "https://outerlimits.zone/?GoTo=" + temp2;
                       navigator.clipboard.writeText(url);
-                      shareLinkText()
+                      shareLinkText();
                     }}>{shareText}</button
                   >
                   <button
@@ -664,7 +739,11 @@
                     }}>Reply</button
                   >
                 </div>
+                <b>{post.alias}:</b>
                 {post.text}
+                {#if post.imgRef !== "noimg"} 
+                  <img src={post.imgRef} alt="Uploaded" />
+                {/if}
               </div>
             {/each}
           </div>
