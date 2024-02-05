@@ -221,6 +221,15 @@
   let geoBindToOP = "error";
 
   async function replyInThread() {
+    const imageInput = document.getElementById("imageInput");
+
+    // @ts-ignore
+    if (imageInput.files[0]) {
+      await uploadImage().then((url)=>{
+        imgUrl = url
+      })
+    } 
+
     let domid = crypto.randomUUID();
     let replyData = {
       author: "Anon",
@@ -230,11 +239,14 @@
       DOMid: domid,
       GeoPoint: geoBindToOP,
       alias: PFPseed,
+      imgRef: imgUrl,
+
     };
 
     await updateDoc(currentActiveDocRef, { [replyID]: arrayUnion(replyData) });
     userInputText = "";
     currentPopover = "PopoverinitialState";
+    imgUrl = 'noimg'
   }
 
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
@@ -658,7 +670,8 @@
               <path d="M10 10l4 4m0 -4l-4 4" />
             </svg>
           </button>
-      
+          <input type="file" accept="image/*" id="imageInput" />
+
           <div class="flexrow" style="flex-grow:1;">
             <input
               type="text"
