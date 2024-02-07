@@ -58,7 +58,7 @@
   //🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂
 
   const auth = getAuth(app);
-  let currentUID;
+  let userAuthID;
 
   setPersistence(auth, browserLocalPersistence)
     .then(() => {
@@ -73,8 +73,8 @@
     if (user) {
       // User is signed in, see docs for a list of available properties
       // https://firebase.google.com/docs/reference/js/auth.user
-      currentUID = user.uid;
-      console.log(currentUID);
+      userAuthID = user.uid;
+      console.log(userAuthID);
     } else {
       signInAnonymously(auth)
         .then((userCredential) => {
@@ -91,7 +91,7 @@
   //🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂🛂
   //🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️
   //This code connects the project to the google maps api
-  //TODO: Nothing, this code is fine
+  //TODO: Add a function that allows the map to start at a users current location in case they have already given us geolocation access
 
   import { Loader } from "@googlemaps/js-api-loader";
 
@@ -136,40 +136,47 @@
   //This code calls the geolocation api to set the map at the users current location
   //TODO: I should probably guide a user to enable geolocation if they want it in the future.
 
-  const options = {
-    enableHighAccuracy: true,
-    timeout: 5000,
-    maximumAge: 0,
-  };
-
-  function moveMapToCurrentLocation() {
+  function geolocationGetCurrentPosition(callback) {
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0,
+    };
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         function (position) {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
-          console.log("Latitude: " + latitude + ", Longitude: " + longitude);
-          map.setCenter({ lat: latitude, lng: longitude });
+          let coords = { lat: latitude, lng: longitude };
+          callback(coords);
         },
         function (error) {
           switch (error.code) {
             case error.PERMISSION_DENIED:
-              console.error("User denied the request for geolocation.");
+              alert("User denied the request for geolocation.");
               break;
             case error.POSITION_UNAVAILABLE:
-              console.error("Location information is unavailable.");
+              alert("Location information is unavailable.");
               break;
             case error.TIMEOUT:
-              console.error("The request to get user location timed out.");
+              alert("The request to get user location timed out.");
               break;
           }
         },
         options,
       );
     } else {
-      console.error("Geolocation is not supported by this browser.");
+      alert("Geolocation is not supported by this browser.");
     }
   }
+
+  function moveMapToCurrentLocation() {
+    geolocationGetCurrentPosition(function (coords) {
+      map.setCenter({ lat: coords.lat, lng: coords.lng });
+      //console.log(coords);
+    });
+  }
+
   //🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐🌐
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
   //This code uploads user content to the firestore database
@@ -181,17 +188,17 @@
   let userInputText;
   let currentActiveDoc = "mvpdoc";
   let currentActiveDocRef = doc(db, "threads", currentActiveDoc);
-  let imgUrl = "noimg"
+  let imgUrl = "noimg";
 
   async function createNewThread() {
     const imageInput = document.getElementById("imageInput");
 
     // @ts-ignore
     if (imageInput.files[0]) {
-      await uploadImage().then((url)=>{
-        imgUrl = url
-      })
-    } 
+      await uploadImage().then((url) => {
+        imgUrl = url;
+      });
+    }
 
     let arrayID = crypto.randomUUID();
     let domid = crypto.randomUUID();
@@ -213,7 +220,7 @@
 
     userInputText = "";
     currentPopover = "PopoverinitialState";
-    imgUrl = 'noimg'
+    imgUrl = "noimg";
   }
 
   //replyID is updated in the DOM
@@ -225,10 +232,10 @@
 
     // @ts-ignore
     if (imageInput.files[0]) {
-      await uploadImage().then((url)=>{
-        imgUrl = url
-      })
-    } 
+      await uploadImage().then((url) => {
+        imgUrl = url;
+      });
+    }
 
     let domid = crypto.randomUUID();
     let replyData = {
@@ -240,13 +247,12 @@
       GeoPoint: geoBindToOP,
       alias: PFPseed,
       imgRef: imgUrl,
-
     };
 
     await updateDoc(currentActiveDocRef, { [replyID]: arrayUnion(replyData) });
     userInputText = "";
     currentPopover = "PopoverinitialState";
-    imgUrl = 'noimg'
+    imgUrl = "noimg";
   }
 
   //🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️🎙️
@@ -277,7 +283,7 @@
 
           // Now you can save 'imageUrl' in Firestore or use it to display the image on your site
           console.log("Image uploaded:", imageUrl);
-          resolve (imageUrl)
+          resolve(imageUrl);
         } catch (error) {
           console.error("Error uploading image:", error);
         }
@@ -328,7 +334,7 @@
       console.log("Empty array");
       return updateMarkers();
     } else {
-      addMarkersFromData(masterPostArray, map);
+      createThreadMarkersOnMap(masterPostArray, map);
     }
   }
 
@@ -337,7 +343,7 @@
   //This code adds makers for each post to the map
   //TODO: add in custom svg and add thread aging function
 
-  function addMarkersFromData(dataArray, map) {
+  function createThreadMarkersOnMap(dataArray, map) {
     dataArray.forEach((subArray) => {
       if (subArray.length > 0 && subArray[0].GeoPoint) {
         const { latitude, longitude } = subArray[0].GeoPoint;
@@ -370,6 +376,9 @@
       }
     });
   }
+
+  function createUserMarkersOnMap() {}
+
   //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
   //♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
   //Scroll snaping function
@@ -449,11 +458,11 @@
   }
   //🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯🚯
   //😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏
+  //This code uses the varible PFPseed to generate user pictures with dicebear, we also save PFPseed to local storage
   import { createAvatar } from "@dicebear/core";
   import { loreleiNeutral } from "@dicebear/collection";
 
   let PFPseed = null;
-  let PFPsvg;
 
   function checkLocalStorage() {
     if (localStorage.getItem("currentAlias")) {
@@ -467,23 +476,118 @@
 
   checkLocalStorage();
 
-  function generatePFP() {
-    const avatar = createAvatar(loreleiNeutral, {
-      seed: PFPseed,
-    });
-    PFPsvg = avatar.toString();
-    localStorage.setItem("currentAlias", PFPseed);
-  }
-
-  function generatePFPforPosts(seed) {
+  function dicebearGenerate(seed) {
     const avatar = createAvatar(loreleiNeutral, {
       seed: seed,
     });
-    return avatar.toString();
+    let dicebearGeneratedURI = avatar.toDataUriSync();
+    //console.log("New Dicebear generated with seed: " + seed + dicebearGeneratedURI)
+    return dicebearGeneratedURI;
   }
 
-  $: PFPseed && generatePFP();
+  $: PFPseed;
   //😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏
+  //🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸
+  //user map feature
+  let hogmapState = false;
+  let hogmapArray = [];
+  let markersArray = [];
+  let hogmapDocRef = doc(db, "hogmap", "mvphogmap");
+  let intervalId;
+
+  function toggleFunctionLoop() {
+    if (hogmapState === true) {
+      feedLiveGeoloactionToFirebase();
+
+      intervalId = setInterval(feedLiveGeoloactionToFirebase, 3000);
+    } else if (hogmapState === false) {
+      feedLiveGeoloactionToFirebase();
+
+      clearInterval(intervalId);
+    }
+  }
+
+  async function feedLiveGeoloactionToFirebase() {
+    geolocationGetCurrentPosition(async function (coords) {
+      let hoglat = coords.lat;
+      let hoglng = coords.lng;
+
+      if (hogmapState === false) {
+        hoglat = null;
+        hoglng = null;
+      }
+
+      let userGeoPointMarker = {
+        userAuthID: userAuthID,
+        alias: PFPseed,
+        GeoPoint: new GeoPoint(hoglat, hoglng),
+      };
+
+      await updateDoc(hogmapDocRef, {
+        [userAuthID]: userGeoPointMarker,
+      });
+    });
+  }
+
+  function hogmapsubscribeToData() {
+    const queryRef = query(collection(db, "hogmap"));
+    return onSnapshot(
+      queryRef,
+      (querySnapshot) => {
+        let tempArray = [];
+        querySnapshot.forEach((doc) => {
+          tempArray.push(doc.data());
+        });
+        hogmapArray = tempArray; // Update the array to trigger reactivity in Svelte
+        console.log(tempArray);
+        createUserMarkers(hogmapArray, map, markersArray);
+      },
+      (error) => {
+        console.log("Error fetching data:", error);
+      },
+    );
+  }
+
+  hogmapsubscribeToData();
+
+  function createUserMarkers(dataArray, map, markersArray) {
+    // Clear existing markers
+    markersArray.forEach((marker) => {
+      marker.setMap(null);
+    });
+
+    // Clear the markersArray
+    markersArray.length = 0;
+
+    // Iterate over each document in the dataArray
+    dataArray.forEach((document) => {
+      // Iterate over each user object in the document
+      Object.values(document).forEach((userObject) => {
+        const { GeoPoint, alias } = userObject;
+        const { latitude, longitude } = GeoPoint;
+
+        // @ts-ignore
+        const position = new google.maps.LatLng(latitude, longitude);
+
+        const customIcon = dicebearGenerate(alias);
+
+        // @ts-ignore
+        const marker = new google.maps.Marker({
+          position: position,
+          map: map,
+          icon: {
+            url: customIcon, // URL to a custom marker icon
+            // @ts-ignore
+            scaledSize: new google.maps.Size(50, 50), // scaling the icon
+          },
+        });
+
+        // Push the new marker to the markersArray
+        markersArray.push(marker);
+      });
+    });
+  }
+  //🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸
   //💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩
   //This is bad dumb code that I regret, but it works.
 
@@ -560,8 +664,8 @@
         <div class="popover , touchTransparent">
           <div class="flexrow">
             <button
+              id="POP_UserProfile"
               class="squarebutton"
-              id="AccountAuth"
               on:click={() => {
                 currentPopover = "PopoverAuth";
               }}
@@ -580,7 +684,11 @@
                 />
               </svg>
             </button>
-            <button class="squarebutton" on:click={moveMapToCurrentLocation}>
+            <button
+              id="POP_centerMap"
+              class="squarebutton"
+              on:click={moveMapToCurrentLocation}
+            >
               <svg
                 width="44"
                 height="44"
@@ -597,6 +705,7 @@
               </svg>
             </button>
             <button
+              id="POP_NewThread"
               class="squarebutton"
               on:click={() => {
                 currentPopover = "PopoverNewOP";
@@ -612,6 +721,34 @@
                 <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
                 <path d="M9 12h6" />
                 <path d="M12 9v6" />
+              </svg>
+            </button>
+            <button
+              id="POP_Radar"
+              class="squarebutton"
+              class:active={hogmapState}
+              class:inactive={!hogmapState}
+              on:click={() => {
+                hogmapState = !hogmapState;
+                toggleFunctionLoop();
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="icon icon-tabler icon-tabler-radar"
+                width="44"
+                height="44"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="#2c3e50"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M21 12h-8a1 1 0 1 0 -1 1v8a9 9 0 0 0 9 -9" />
+                <path d="M16 9a5 5 0 1 0 -7 7" />
+                <path d="M20.486 9a9 9 0 1 0 -11.482 11.495" />
               </svg>
             </button>
           </div>
@@ -653,7 +790,6 @@
               <path d="M15 15v-6h-6" />
             </svg>
           </button>
-
         </div>
         <!-- ↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️ -->
       {:else if currentPopover === "PopoverReply"}
@@ -704,9 +840,9 @@
               <path d="M10 10l4 4m0 -4l-4 4" />
             </svg>
           </button>
-          {@html PFPsvg}
+          <img src={dicebearGenerate(PFPseed)} alt="User Profile" />
           Welcome, <br />
-          your account ID is: {currentUID} <br />
+          your account ID is: {userAuthID} <br />
           your account alias is: {PFPseed} <br />
           <input bind:value={PFPseed} maxlength="20" type="text" />
         </div>
@@ -723,7 +859,10 @@
                   <button
                     style="flex-direction: row;  width: 2rem; height:2rem; overflow:hidden; background-color:#fff;"
                   >
-                    {@html generatePFPforPosts(post.alias)}</button
+                    <img
+                      src={dicebearGenerate(post.alias)}
+                      alt="User Profile"
+                    /></button
                   >
                   <button
                     on:click={() => {
@@ -754,7 +893,7 @@
                 </div>
                 <b>{post.alias}:</b>
                 {post.text}
-                {#if post.imgRef !== "noimg"} 
+                {#if post.imgRef !== "noimg"}
                   <img src={post.imgRef} alt="Uploaded" />
                 {/if}
               </div>
