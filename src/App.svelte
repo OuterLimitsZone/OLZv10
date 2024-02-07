@@ -153,13 +153,13 @@
         function (error) {
           switch (error.code) {
             case error.PERMISSION_DENIED:
-              alert("User denied the request for geolocation.");
+              console.log("User denied the request for geolocation.");
               break;
             case error.POSITION_UNAVAILABLE:
-              alert("Location information is unavailable.");
+              console.log("Location information is unavailable.");
               break;
             case error.TIMEOUT:
-              alert("The request to get user location timed out.");
+              console.log("The request to get user location timed out.");
               break;
           }
         },
@@ -377,8 +377,6 @@
     });
   }
 
-  function createUserMarkersOnMap() {}
-
   //📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍
   //♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
   //Scroll snaping function
@@ -463,6 +461,19 @@
   import { loreleiNeutral } from "@dicebear/collection";
 
   let PFPseed = null;
+
+  function updateLocalStorageVariable(key, value, callback) {
+    localStorage.setItem(key, value);
+    if (typeof callback === "function") {
+      callback();
+    }
+  }
+
+  $: {
+    updateLocalStorageVariable("currentAlias", PFPseed, () => {
+      console.log("Variable updated in local storage");
+    });
+  }
 
   function checkLocalStorage() {
     if (localStorage.getItem("currentAlias")) {
