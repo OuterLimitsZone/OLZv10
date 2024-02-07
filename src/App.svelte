@@ -577,24 +577,26 @@
         const { GeoPoint, alias } = userObject;
         const { latitude, longitude } = GeoPoint;
 
-        // @ts-ignore
-        const position = new google.maps.LatLng(latitude, longitude);
+        if (latitude !== 0 && longitude !== 0) {
+          // @ts-ignore
+          const position = new google.maps.LatLng(latitude, longitude);
 
-        const customIcon = dicebearGenerate(alias);
+          const customIcon = dicebearGenerate(alias);
 
-        // @ts-ignore
-        const marker = new google.maps.Marker({
-          position: position,
-          map: map,
-          icon: {
-            url: customIcon, // URL to a custom marker icon
-            // @ts-ignore
-            scaledSize: new google.maps.Size(50, 50), // scaling the icon
-          },
-        });
+          // @ts-ignore
+          const marker = new google.maps.Marker({
+            position: position,
+            map: map,
+            icon: {
+              url: customIcon, // URL to a custom marker icon
+              // @ts-ignore
+              scaledSize: new google.maps.Size(50, 50), // scaling the icon
+            },
+          });
 
-        // Push the new marker to the markersArray
-        markersArray.push(marker);
+          // Push the new marker to the markersArray
+          markersArray.push(marker);
+        }
       });
     });
   }
@@ -641,279 +643,262 @@
 </script>
 
 <!-- 🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️🗺️ -->
-<div id="map" style="height: 100%; border-radius:0%; "></div>
-<svg
-  class="target , touchTransparent"
-  width="44"
-  height="44"
-  viewBox="0 0 24 24"
->
-  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-  <circle cx="12" cy="12" r=".5" fill="currentColor" />
-  <path d="M12 12m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
-  <path d="M12 3l0 2" />
-  <path d="M3 12l2 0" />
-  <path d="M12 19l0 2" />
-  <path d="M19 12l2 0" />
-</svg>
-<div class="overlay">
-  <div class="overlayPad">
-    <!-- 🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩 -->
-    <div class="topflex">
-      <div class="flexrow" style="width: 100%;">
+
+<!-- 🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩🎩 -->
+<div class="topflex">
+  <div class="flexrow" style="width: 100%;">
+    <button
+      on:click={() => {
+        let targetClipboard = targetLat + ", " + targetLng;
+        navigator.clipboard.writeText(targetClipboard);
+      }}>Coordinates: {targetLat} {targetLng}</button
+    >
+  </div>
+</div>
+<!-- 🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕 -->
+<div class="midflex">
+  <div id="map" style="height: 100%; border-radius:0%; "></div>
+  <svg
+    class="target , touchTransparent"
+    class:invis={!(currentPopover === 'PopoverinitialState')}
+    width="44"
+    height="44"
+    viewBox="0 0 24 24"
+  >
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <circle cx="12" cy="12" r=".5" fill="currentColor" />
+    <path d="M12 12m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+    <path d="M12 3l0 2" />
+    <path d="M3 12l2 0" />
+    <path d="M12 19l0 2" />
+    <path d="M19 12l2 0" />
+  </svg>
+  <div class="midMapOverlay , touchTransparent">
+    {#if currentPopover === "PopoverinitialState"}
+      <div class="flexrow , touchSolid">
         <button
+          id="POP_UserProfile"
+          class="squarebutton"
           on:click={() => {
-            let targetClipboard = targetLat + ", " + targetLng;
-            navigator.clipboard.writeText(targetClipboard);
-          }}>Coordinates: {targetLat} {targetLng}</button
+            currentPopover = "PopoverAuth";
+          }}
         >
-      </div>
-    </div>
-    <!-- 🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕 -->
-    <div class="midflex">
-      {#if currentPopover === "PopoverinitialState"}
-        <div class="popover , touchTransparent">
-          <div class="flexrow">
-            <button
-              id="POP_UserProfile"
-              class="squarebutton"
-              on:click={() => {
-                currentPopover = "PopoverAuth";
-              }}
-            >
-              <svg
-                width="44"
-                height="44"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-                <path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
-                <path
-                  d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"
-                />
-              </svg>
-            </button>
-            <button
-              id="POP_centerMap"
-              class="squarebutton"
-              on:click={moveMapToCurrentLocation}
-            >
-              <svg
-                width="44"
-                height="44"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
-                <path d="M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0 -16 0" />
-                <path d="M12 2l0 2" />
-                <path d="M12 20l0 2" />
-                <path d="M20 12l2 0" />
-                <path d="M2 12l2 0" />
-              </svg>
-            </button>
-            <button
-              id="POP_NewThread"
-              class="squarebutton"
-              on:click={() => {
-                currentPopover = "PopoverNewOP";
-              }}
-            >
-              <svg
-                width="44"
-                height="44"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
-                <path d="M9 12h6" />
-                <path d="M12 9v6" />
-              </svg>
-            </button>
-            <button
-              id="POP_Radar"
-              class="squarebutton"
-              class:active={hogmapState}
-              class:inactive={!hogmapState}
-              on:click={() => {
-                hogmapState = !hogmapState;
-                toggleFunctionLoop();
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="icon icon-tabler icon-tabler-radar"
-                width="44"
-                height="44"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="#2c3e50"
-                fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M21 12h-8a1 1 0 1 0 -1 1v8a9 9 0 0 0 9 -9" />
-                <path d="M16 9a5 5 0 1 0 -7 7" />
-                <path d="M20.486 9a9 9 0 1 0 -11.482 11.495" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <!-- 🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕 -->
-      {:else if currentPopover === "PopoverNewOP"}
-        <div class="popover">
-          <button
-            class="squarebutton"
-            on:click={() => {
-              currentPopover = "PopoverinitialState";
-            }}
+          <svg width="44" height="44" viewBox="0 0 24 24" stroke-width="1.5">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+            <path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+            <path
+              d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"
+            />
+          </svg>
+        </button>
+        <button
+          id="POP_centerMap"
+          class="squarebutton"
+          on:click={moveMapToCurrentLocation}
+        >
+          <svg width="44" height="44" viewBox="0 0 24 24" stroke-width="1.5">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+            <path d="M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0 -16 0" />
+            <path d="M12 2l0 2" />
+            <path d="M12 20l0 2" />
+            <path d="M20 12l2 0" />
+            <path d="M2 12l2 0" />
+          </svg>
+        </button>
+        <button
+          id="POP_NewThread"
+          class="squarebutton"
+          on:click={() => {
+            currentPopover = "PopoverNewOP";
+          }}
+        >
+          <svg width="44" height="44" viewBox="0 0 24 24" stroke-width="1.5">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+            <path d="M9 12h6" />
+            <path d="M12 9v6" />
+          </svg>
+        </button>
+        <button
+          id="POP_Radar"
+          class="squarebutton"
+          class:active={hogmapState}
+          class:inactive={!hogmapState}
+          on:click={() => {
+            hogmapState = !hogmapState;
+            toggleFunctionLoop();
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="icon icon-tabler icon-tabler-radar"
+            width="44"
+            height="44"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="#2c3e50"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
-            <svg width="44" height="44" viewBox="0 0 24 24">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-              <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-              <path d="M10 10l4 4m0 -4l-4 4" />
-            </svg>
-          </button>
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M21 12h-8a1 1 0 1 0 -1 1v8a9 9 0 0 0 9 -9" />
+            <path d="M16 9a5 5 0 1 0 -7 7" />
+            <path d="M20.486 9a9 9 0 1 0 -11.482 11.495" />
+          </svg>
+        </button>
+      </div>
+      <!-- 🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕 -->
+    {:else if currentPopover === "PopoverNewOP"}
+      <div class="touchSolid , popover">
+        <button
+          class="squarebutton"
+          on:click={() => {
+            currentPopover = "PopoverinitialState";
+          }}
+        >
+          <svg width="44" height="44" viewBox="0 0 24 24">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+            <path d="M10 10l4 4m0 -4l-4 4" />
+          </svg>
+        </button>
 
-          <input type="file" accept="image/*" id="imageInput" />
+        <input type="file" accept="image/*" id="imageInput" />
 
+        <input
+          type="text"
+          style="width: 100%; flex-grow:1; "
+          placeholder="Make a new Thread"
+          bind:value={userInputText}
+        />
+        <button
+          class="squarebutton"
+          on:click={() => {
+            createNewThread();
+          }}
+        >
+          <svg width="44" height="44" viewBox="0 0 24 24">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+            <path d="M15 9l-6 6" />
+            <path d="M15 15v-6h-6" />
+          </svg>
+        </button>
+      </div>
+      <!-- ↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️ -->
+    {:else if currentPopover === "PopoverReply"}
+      <div class="touchSolid , popover">
+        <button
+          class="squarebutton"
+          on:click={() => {
+            currentPopover = "PopoverinitialState";
+          }}
+        >
+          <svg width="44" height="44" viewBox="0 0 24 24">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+            <path d="M10 10l4 4m0 -4l-4 4" />
+          </svg>
+        </button>
+        <input type="file" accept="image/*" id="imageInput" />
+
+        <div class="flexrow" style="flex-grow:1;">
           <input
             type="text"
-            style="width: 100%; flex-grow:1; "
-            placeholder="Make a new Thread"
+            style="width: 100%; "
+            placeholder="Send a Reply"
             bind:value={userInputText}
           />
-          <button
-            class="squarebutton"
-            on:click={() => {
-              createNewThread();
-            }}
-          >
-            <svg width="44" height="44" viewBox="0 0 24 24">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-              <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
-              <path d="M15 9l-6 6" />
-              <path d="M15 15v-6h-6" />
-            </svg>
-          </button>
         </div>
-        <!-- ↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️↩️ -->
-      {:else if currentPopover === "PopoverReply"}
-        <div class="popover">
-          <button
-            class="squarebutton"
-            on:click={() => {
-              currentPopover = "PopoverinitialState";
-            }}
-          >
-            <svg width="44" height="44" viewBox="0 0 24 24">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-              <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-              <path d="M10 10l4 4m0 -4l-4 4" />
-            </svg>
-          </button>
-          <input type="file" accept="image/*" id="imageInput" />
-
-          <div class="flexrow" style="flex-grow:1;">
-            <input
-              type="text"
-              style="width: 100%; "
-              placeholder="Send a Reply"
-              bind:value={userInputText}
-            />
-          </div>
-          <button on:click={replyInThread} class="squarebutton">
-            <svg width="44" height="44" viewBox="0 0 24 24">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-              <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
-              <path d="M15 9l-6 6" />
-              <path d="M15 15v-6h-6" />
-            </svg>
-          </button>
-        </div>
-        <!-- 🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔 -->
-      {:else if currentPopover === "PopoverAuth"}
-        <div class="popover" style="justify-content:space-between;">
-          <button
-            class="squarebutton"
-            on:click={() => {
-              currentPopover = "PopoverinitialState";
-            }}
-          >
-            <svg width="44" height="44" viewBox="0 0 24 24">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-              <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-              <path d="M10 10l4 4m0 -4l-4 4" />
-            </svg>
-          </button>
-          <img src={dicebearGenerate(PFPseed)} alt="User Profile" />
-          Welcome, <br />
-          your account ID is: {userAuthID} <br />
-          your account alias is: {PFPseed} <br />
-          <input bind:value={PFPseed} maxlength="20" type="text" />
-        </div>
-      {/if}
-    </div>
-    <!--🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖  -->
-    <div class="botflex">
-      {#if masterPostArray.length > 0}
-        {#each masterPostArray as threadColumn}
-          <div class="threadColumn">
-            {#each threadColumn as post}
-              <div class="post" id={post.DOMid}>
-                <div class="flexrow">
-                  <button
-                    style="flex-direction: row;  width: 2rem; height:2rem; overflow:hidden; background-color:#fff;"
-                  >
-                    <img
-                      src={dicebearGenerate(post.alias)}
-                      alt="User Profile"
-                    /></button
-                  >
-                  <button
-                    on:click={() => {
-                      let temp2 = post.DOMid;
-                      let url = "https://outerlimits.zone/?GoTo=" + temp2;
-                      navigator.clipboard.writeText(url);
-                      shareLinkText();
-                    }}>{shareText}</button
-                  >
-                  <button
-                    on:click={() => {
-                      let temp = post.GeoPoint;
-                      const firebaseTOMapsFormat = {
-                        lat: temp.latitude,
-                        lng: temp.longitude,
-                      };
-                      map.panTo(firebaseTOMapsFormat);
-                    }}>Map</button
-                  >
-                  <button
-                    on:click={() => {
-                      currentPopover = "PopoverReply";
-                      replyID = post.ReplyID;
-                      geoBindToOP = post.GeoPoint;
-                      return replyID;
-                    }}>Reply</button
-                  >
-                </div>
-                <b>{post.alias}:</b>
-                {post.text}
-                {#if post.imgRef !== "noimg"}
-                  <img src={post.imgRef} alt="Uploaded" />
-                {/if}
-              </div>
-            {/each}
+        <button on:click={replyInThread} class="squarebutton">
+          <svg width="44" height="44" viewBox="0 0 24 24">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+            <path d="M15 9l-6 6" />
+            <path d="M15 15v-6h-6" />
+          </svg>
+        </button>
+      </div>
+      <!-- 🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔🆔 -->
+    {:else if currentPopover === "PopoverAuth"}
+      <div class="touchSolid , popover" style="justify-content:space-between;">
+        <button
+          class="squarebutton"
+          on:click={() => {
+            currentPopover = "PopoverinitialState";
+          }}
+        >
+          <svg width="44" height="44" viewBox="0 0 24 24">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+            <path d="M10 10l4 4m0 -4l-4 4" />
+          </svg>
+        </button>
+        <img src={dicebearGenerate(PFPseed)} style="height: 4rem;" alt="User Profile" />
+        Welcome, <br />
+        your account ID is: {userAuthID} <br />
+        your account alias is: {PFPseed} <br />
+        <input bind:value={PFPseed} maxlength="20" type="text" />
+      </div>
+    {/if}
+  </div>
+</div>
+<!--🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖  -->
+<div class="botflex">
+  {#if masterPostArray.length > 0}
+    {#each masterPostArray as threadColumn}
+      <div class="threadColumn">
+        {#each threadColumn as post}
+          <div class="post" id={post.DOMid}>
+            <div class="flexrow">
+              <button
+                style="flex-direction: row;  width: 2rem; height:2rem; overflow:hidden; background-color:#fff;"
+              >
+                <img
+                  src={dicebearGenerate(post.alias)}
+                  alt="User Profile"
+                /></button
+              >
+              <button
+                on:click={() => {
+                  let temp2 = post.DOMid;
+                  let url = "https://outerlimits.zone/?GoTo=" + temp2;
+                  navigator.clipboard.writeText(url);
+                  shareLinkText();
+                }}>{shareText}</button
+              >
+              <button
+                on:click={() => {
+                  let temp = post.GeoPoint;
+                  const firebaseTOMapsFormat = {
+                    lat: temp.latitude,
+                    lng: temp.longitude,
+                  };
+                  map.panTo(firebaseTOMapsFormat);
+                }}>Map</button
+              >
+              <button
+                on:click={() => {
+                  currentPopover = "PopoverReply";
+                  replyID = post.ReplyID;
+                  geoBindToOP = post.GeoPoint;
+                  return replyID;
+                }}>Reply</button
+              >
+            </div>
+            <b>{post.alias}:</b>
+            {post.text}
+            {#if post.imgRef !== "noimg"}
+              <img src={post.imgRef} alt="Uploaded" />
+            {/if}
           </div>
         {/each}
-      {:else}
-        <h1>Loading...</h1>
-      {/if}
-    </div>
-  </div>
+      </div>
+    {/each}
+  {:else}
+    <h1>Loading...</h1>
+  {/if}
 </div>
