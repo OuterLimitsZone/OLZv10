@@ -33,7 +33,7 @@
   gap: 0.5rem;
   box-sizing: border-box;
   font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
- 
+
 }
 
 html,
@@ -44,6 +44,7 @@ body,
   height: 100%;
   margin: 0;
   background-color: #000;
+  min-width: 300px;
 }
 
 #app {
@@ -77,15 +78,15 @@ body,
   flex-grow: 1;
 }
 
-.midMapOverlay{
+.midMapOverlay {
   display: flex;
   flex-direction: column;
   height: 100%;
   width: 100%;
   padding: 0.5rem;
   position: absolute;
- }
- 
+}
+
 .touchTransparent {
   pointer-events: none;
   background-color: transparent;
@@ -170,25 +171,48 @@ svg {
   background-color: rgb(0, 60, 255);
 }
 
-.invis{
+.invis {
   display: none;
 }
 
-/* 
-@media screen and (min-aspect-ratio: 1/1) {
-  .overlayPad {
-    width: 50vw;
-    height: 100vh;
-  }
+.desktopFormat{
+  display: flex;
+  flex-direction: column;
+}
+
+@media screen and (width > 600px) {
 
   .threadColumn {
-    height: 100vh;
+    max-width: 400px;
+    overflow-x: hidden;
   }
 
-  .botflex {
-    overflow-y: hidden;
+  .desktopFormat{
+    display: flex;
+    flex-direction: row-reverse;
+    overflow: hidden;
   }
-} */
+
+  .midflex{
+    width: 100%;
+  }
+
+  
+::-webkit-scrollbar {
+  display: block;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #555; /* Color of the scrollbar thumb */
+  border-radius: 5px; /* Rounded corners of the scrollbar thumb */
+}
+
+/* Change the color of the scrollbar track on hover */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #888; /* Color of the scrollbar thumb on hover */
+}
+
+}
 
 /* 
 * {

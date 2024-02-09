@@ -153,10 +153,10 @@
         function (error) {
           switch (error.code) {
             case error.PERMISSION_DENIED:
-              console.log("User denied the request for geolocation.");
+              alert("User denied the request for geolocation.");
               break;
             case error.POSITION_UNAVAILABLE:
-              console.log("Location information is unavailable.");
+            alert("Location information is unavailable.");
               break;
             case error.TIMEOUT:
               console.log("The request to get user location timed out.");
@@ -621,20 +621,20 @@
     }, 1000);
   }
 
-  function isMobileDevice() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent,
-    );
-  }
+  // function isMobileDevice() {
+  //   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+  //     navigator.userAgent,
+  //   );
+  // }
 
-  if (isMobileDevice()) {
-    console.log("User is on a mobile device");
-  } else {
-    alert(
-      "This website was built for mobile and is currently broken on desktop. Sorry!",
-    );
-    console.log("User is on a desktop device");
-  }
+  // if (isMobileDevice()) {
+  //   console.log("User is on a mobile device");
+  // } else {
+  //   alert(
+  //     "This website was built for mobile and is currently broken on desktop. Sorry!",
+  //   );
+  //   console.log("User is on a desktop device");
+  // }
 
   //🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛🐛
   //debugging code
@@ -656,6 +656,7 @@
   </div>
 </div>
 <!-- 🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕🖕 -->
+<div class="desktopFormat">
 <div class="midflex">
   <div id="map" style="height: 100%; border-radius:0%; "></div>
   <svg
@@ -901,4 +902,5 @@
   {:else}
     <h1>Loading...</h1>
   {/if}
+</div>
 </div>
