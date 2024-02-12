@@ -388,6 +388,11 @@
         behavior: "smooth",
         block: "start",
       });
+      element.classList.add("blinking");
+
+      setTimeout(()=>{
+        element.classList.remove("blinking");
+      }, 2000)
     }
   }
   //♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️

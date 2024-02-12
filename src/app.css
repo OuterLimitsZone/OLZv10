@@ -175,16 +175,38 @@ svg {
   display: none;
 }
 
+.blinking{
+  animation: blink-effect 2s;
+}
+
+@keyframes blink-effect {
+  0% {
+    background-color: #ff7f50; /* Red */
+  }
+  25% {
+    background-color: #ffffff; /* White */
+  }
+  75% {
+    background-color: #ff7f50; /* Red */
+  }
+  100% {
+    background-color: var(--grey)
+  }
+}
+
+
 .desktopFormat{
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 @media screen and (width > 600px) {
 
   .threadColumn {
-    max-width: 400px;
+    width: 350px;
     overflow-x: hidden;
+    flex-shrink: 0;
   }
 
   .desktopFormat{
@@ -197,6 +219,10 @@ svg {
     width: 100%;
   }
 
+  .botflex{
+    flex-shrink: 0;
+    max-width: 380px;
+  }
   
 ::-webkit-scrollbar {
   display: block;
