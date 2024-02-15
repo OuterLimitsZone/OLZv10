@@ -313,17 +313,8 @@
         querySnapshot.forEach((doc) => {
           tempArray.push(...Object.values(doc.data()));
         });
-        tempArray.sort((a, b) => {
-          // Access the 'timestamp' of the first object in each sub-array
-          let timestampA = a[0].timestamp;
-          let timestampB = b[0].timestamp;
 
-          return timestampA - timestampB;
-        });
-
-        masterPostArray = tempArray; // Update the array to trigger reactivity in Svelte
-        // console.log("subscribed data updated");
-        // console.log(masterPostArray);
+        masterPostArray = tempArray;
         updateMarkers();
       },
       (error) => {
@@ -489,17 +480,15 @@
     }
   }
 
- // @ts-ignore
-   $: {
+  // @ts-ignore
+  $: {
     updateLocalStorageVariable("currentAlias", PFPseed, () => {
-      console.log("Variable updated in local storage");
     });
   }
 
   function checkLocalStorage() {
     if (localStorage.getItem("currentAlias")) {
       PFPseed = localStorage.getItem("currentAlias");
-      console.log("Loaded seed " + PFPseed);
     } else {
       localStorage.setItem("currentAlias", "Anon");
       console.log("No Seed found creating new default " + PFPseed);
@@ -517,8 +506,8 @@
     return dicebearGeneratedURI;
   }
 
- // @ts-ignore
-   $: PFPseed;
+  // @ts-ignore
+  $: PFPseed;
   //😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏😏
   //🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸🛸
   //user map feature
@@ -572,7 +561,6 @@
           tempArray.push(doc.data());
         });
         hogmapArray = tempArray; // Update the array to trigger reactivity in Svelte
-        console.log(tempArray);
         createUserMarkers(hogmapArray, map, markersArray);
       },
       (error) => {
@@ -627,8 +615,8 @@
   //This code scrolls to posts based on the url
   let urlparams = new URLSearchParams(window.location.search);
   let urlparamsGoTo = urlparams.get("GoTo");
- // @ts-ignore
-   $: if (masterPostArray.length > 0) {
+  // @ts-ignore
+  $: if (masterPostArray.length > 0) {
     setTimeout(() => {
       scrollToElement(urlparamsGoTo);
     }, 1000);
@@ -643,15 +631,13 @@
     }, 1000);
   }
   //🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗🔗
-  //☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️
+  //🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻
   //This code handles the fog of war effect
   let bermudaTriangle;
-  let tri;
   let newUserPolygon = null;
-  // @ts-ignore
-  let polyArray;
 
   function spawnpolygon() {
+    let tri;
     let spawnpoint = map.getCenter();
     tri = [
       { lat: spawnpoint.lat(), lng: spawnpoint.lng() },
@@ -672,51 +658,47 @@
     });
 
     bermudaTriangle.setMap(map);
-    newUserPolygon = JSON.stringify(
-      bermudaTriangle.getPaths().getArray()[0].Fg,
-    );
   }
 
   async function savePolygonToFirebase() {
+    newUserPolygon = JSON.stringify(
+      bermudaTriangle.getPaths().getArray()[0].Fg,
+    );
     let arrayID = crypto.randomUUID();
-
-    // let polyData = {
-    //   timestamp: Date.now(),
-    //   //userAuthID: userAuthID,
-    //   DOMid: arrayID,
-    //   poly: JSON.parse(newUserPolygon),
-    // };
-
     await updateDoc(doc(db, "polygons", "mvpdocPoly"), {
       [arrayID]: JSON.parse(newUserPolygon),
     });
   }
 
+  let drawnPolygons = new Set(); // Set to track drawn polygon IDs
+
   function drawPolygons() {
     // @ts-ignore
     const unsub = onSnapshot(doc(db, "polygons", "mvpdocPoly"), (doc) => {
       let dataArray = Object.entries(doc.data());
-      dataArray.forEach(item =>{
-        const coordinates = item[1];
-
+      dataArray.forEach((item) => {
+        const polygonId = item[0];
+        let coordinates = item[1];
+        if (drawnPolygons.has(polygonId)) return;
         // @ts-ignore
         const polygon = new google.maps.Polygon({
-            paths: coordinates,
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            fillColor: '#FF0000',
-            fillOpacity: 0.35,
+          paths: coordinates,
+          strokeColor: "#FF0000",
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: "#FF0000",
+          fillOpacity: 0.35,
         });
-
+        
         polygon.setMap(map);
-      })
+        drawnPolygons.add(polygonId)
+      });
     });
   }
 
   drawPolygons();
 
-  //☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️
+  //🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻
   //💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩💩
   //This is bad dumb code that I regret, but it works.
 
@@ -826,7 +808,7 @@
               <path d="M20.486 9a9 9 0 1 0 -11.482 11.495" />
             </svg>
           </button>
-          <!-- ☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️☁️ -->
+          <!-- 🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻🔻 -->
           <button
             id="POP_polygon"
             class="squarebutton"
