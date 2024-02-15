@@ -72,9 +72,8 @@ body,
 
 .botflex {
   display: flex;
-
   overflow-x: scroll;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: x mandatory;
   flex-grow: 1;
 }
 
@@ -90,11 +89,6 @@ body,
 .touchTransparent {
   pointer-events: none;
   background-color: transparent;
-
-}
-
-.touchSolid {
-  pointer-events: auto;
 }
 
 .target {
@@ -150,12 +144,17 @@ button {
   flex-grow: 1;
   justify-content: center;
   align-items: center;
+  pointer-events: auto;
 }
 
 .squarebutton {
   flex-grow: 0;
   width: 3rem;
   height: 3rem;
+}
+
+input{
+  pointer-events: auto;
 }
 
 svg {
@@ -198,7 +197,9 @@ svg {
 .desktopFormat{
   display: flex;
   flex-direction: column;
+  flex-grow:0;
   height: 100%;
+  overflow: hidden;
 }
 
 @media screen and (width > 600px) {
@@ -222,6 +223,8 @@ svg {
   .botflex{
     flex-shrink: 0;
     max-width: 380px;
+    scroll-snap-type: none;
+
   }
   
 ::-webkit-scrollbar {
