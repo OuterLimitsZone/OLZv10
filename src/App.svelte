@@ -628,6 +628,7 @@
   //This code handles the fog of war effect
   let bermudaTriangle;
   let newUserPolygon = null;
+  let currentHexColor = "#ff0000";
 
   function spawnpolygon() {
     let tri;
@@ -645,7 +646,7 @@
       strokeColor: "#FF0000",
       strokeOpacity: 0.5,
       strokeWeight: 2,
-      fillColor: "#FF0000",
+      fillColor: currentHexColor,
       fillOpacity: 0.15,
       editable: true,
     });
@@ -658,15 +659,17 @@
       bermudaTriangle.getPaths().getArray()[0].Fg,
     );
     let arrayID = crypto.randomUUID();
+    let parsedData = JSON.parse(newUserPolygon);
+    parsedData.unshift(currentHexColor);
     await updateDoc(polyDataRef, {
-      [arrayID]: JSON.parse(newUserPolygon),
+      [arrayID]: parsedData,
     });
   }
 
   let drawnPolygons = new Set(); // Set to track drawn polygon IDs
   const polyDataRef = doc(db, "polygons", "mvpdocPoly");
-  let currentpolygonId
-  
+  let currentpolygonId;
+
   function drawPolygons() {
     // @ts-ignore
     const unsub = onSnapshot(doc(db, "polygons", "mvpdocPoly"), (doc) => {
@@ -675,13 +678,14 @@
         const polygonId = item[0];
         let coordinates = item[1];
         if (drawnPolygons.has(polygonId)) return;
+        let hex = coordinates.shift();
         // @ts-ignore
         const polygon = new google.maps.Polygon({
           paths: coordinates,
           strokeColor: "#FF0000",
           strokeOpacity: 0.8,
           strokeWeight: 2,
-          fillColor: "#FF0000",
+          fillColor: hex,
           fillOpacity: 0.35,
         });
 
@@ -693,7 +697,8 @@
           polygon,
           "dblclick",
           async function (event) {
-            currentpolygonId = polygonId
+            currentpolygonId = polygonId;
+            currentHexColor = hex;
             currentPopover = "Popoverpolygon";
             bermudaTriangle = polygon;
             polygon.setEditable(true);
@@ -1014,16 +1019,26 @@
             </svg>
           </button>
           <div class="flexgrow , flexrow , popover" style="width: 100%;">
-            <div
-              style="color:#FFF;  background-color:#000; width: 100px; height:20px;"
+            <input
+              bind:value={currentHexColor}
+              type="color"
+              id="favcolor"
+              name="favcolor"
+              style="height: 100%;"
+            />
+
+            <button
+              style="height:100%; width: 100px; background-color:#000; color:#fff;"
+              on:click={() => {
+                currentHexColor = "#000";
+              }}>Dead Zone</button
             >
-              Dead Zone
-            </div>
-            <div
-              style="color:#FFF;  background-color:rgb(0, 60, 255); width: 100px; height:20px;"
+            <button
+              style="height:100%; width: 100px; background-color:#003CFF; color:#fff;"
+              on:click={() => {
+                currentHexColor = "#003CFF";
+              }}>Event Zone</button
             >
-              Event Zone
-            </div>
           </div>
         </div>
       {:else if currentPopover === "PopoverTickets"}
