@@ -28,26 +28,20 @@
   import {
     getFirestore,
     doc,
-    // @ts-ignore
     setDoc,
     collection,
-    // @ts-ignore
     serverTimestamp,
     onSnapshot,
     query,
-    // @ts-ignore
     orderBy,
-    // @ts-ignore
     getDoc,
-    // @ts-ignore
     getDocs,
     arrayUnion,
     GeoPoint,
-    // @ts-ignore
     where,
-    // @ts-ignore
     addDoc,
     updateDoc,
+    deleteField,
   } from "firebase/firestore";
 
   const firebaseConfig = {
@@ -108,10 +102,10 @@
     disableDefaultUI: true,
     fullscreenControl: false,
     center: {
-      lat: 42.39859201048314,
-      lng: -71.14404203872255,
+      lat: 31.755033802028862,
+      lng: -106.3498107479434,
     },
-    zoom: 14,
+    zoom: 13,
   };
 
   const loader = new Loader({
@@ -471,7 +465,7 @@
   import { createAvatar } from "@dicebear/core";
   import { loreleiNeutral } from "@dicebear/collection";
 
-  let PFPseed = null;
+  let PFPseed = "Anon";
 
   function updateLocalStorageVariable(key, value, callback) {
     localStorage.setItem(key, value);
@@ -482,8 +476,7 @@
 
   // @ts-ignore
   $: {
-    updateLocalStorageVariable("currentAlias", PFPseed, () => {
-    });
+    updateLocalStorageVariable("currentAlias", PFPseed, () => {});
   }
 
   function checkLocalStorage() {
@@ -665,13 +658,15 @@
       bermudaTriangle.getPaths().getArray()[0].Fg,
     );
     let arrayID = crypto.randomUUID();
-    await updateDoc(doc(db, "polygons", "mvpdocPoly"), {
+    await updateDoc(polyDataRef, {
       [arrayID]: JSON.parse(newUserPolygon),
     });
   }
 
   let drawnPolygons = new Set(); // Set to track drawn polygon IDs
-
+  const polyDataRef = doc(db, "polygons", "mvpdocPoly");
+  let currentpolygonId
+  
   function drawPolygons() {
     // @ts-ignore
     const unsub = onSnapshot(doc(db, "polygons", "mvpdocPoly"), (doc) => {
@@ -689,11 +684,27 @@
           fillColor: "#FF0000",
           fillOpacity: 0.35,
         });
-        
+
         polygon.setMap(map);
-        drawnPolygons.add(polygonId)
+        drawnPolygons.add(polygonId);
+
+        // @ts-ignore
+        google.maps.event.addListener(
+          polygon,
+          "dblclick",
+          async function (event) {
+            currentpolygonId = polygonId
+            currentPopover = "Popoverpolygon";
+            bermudaTriangle = polygon;
+            polygon.setEditable(true);
+          },
+        );
       });
     });
+  }
+
+  async function deletePolyFromDB() {
+    await updateDoc(polyDataRef, { [currentpolygonId]: deleteField() });
   }
 
   drawPolygons();
@@ -829,6 +840,44 @@
               <path d="M13.5 17.5l-7 -5" />
             </svg>
           </button>
+          <!-- 🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫🎫 -->
+          <button
+            id="POP_Ticket"
+            class="squarebutton"
+            on:click={() => {
+              currentPopover = "PopoverTickets";
+            }}
+          >
+            <svg width="44" height="44" viewBox="0 0 24 24">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M15 5l0 2" />
+              <path d="M15 11l0 2" />
+              <path d="M15 17l0 2" />
+              <path
+                d="M5 5h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-3a2 2 0 0 0 0 -4v-3a2 2 0 0 1 2 -2"
+              />
+            </svg>
+          </button>
+          <button
+            id="POP_Satalite"
+            class="squarebutton"
+            on:click={() => {
+              let currentMapType = map.getMapTypeId();
+
+              if (currentMapType === "roadmap") {
+                map.setMapTypeId("satellite");
+              } else if (currentMapType === "satellite")
+                map.setMapTypeId("roadmap");
+            }}
+          >
+            <svg width="44" height="44" viewBox="0 0 24 24">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M13.5 4c4.694 0 8.5 2.686 8.5 6s-3.806 6 -8.5 6c-2.13 0 -4.584 -.926 -7.364 -2.777l-2.136 1.777v-3.33a46.07 46.07 0 0 1 -2 -1.67a46.07 46.07 0 0 1 2 -1.67v-3.33l2.135 1.778c2.78 -1.852 5.235 -2.778 7.365 -2.778z"
+              />
+              <path d="M10 15.5v4.5h6v-4" />
+            </svg>
+          </button>
         </div>
         <!-- 🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕🆕 -->
       {:else if currentPopover === "PopoverNewOP"}
@@ -930,7 +979,7 @@
         <!-- 🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃🔃 -->
       {:else if currentPopover === "Popoverpolygon"}
         <div class="flexrow">
-          <button
+          <!-- <button
             class="squarebutton"
             on:click={() => {
               currentPopover = "PopoverinitialState";
@@ -943,10 +992,12 @@
               <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
               <path d="M10 10l4 4m0 -4l-4 4" />
             </svg>
-          </button>
+          </button> -->
           <button
             class="squarebutton"
+            id="savePolygonButton"
             on:click={() => {
+              deletePolyFromDB();
               savePolygonToFirebase();
               currentPopover = "PopoverinitialState";
               bermudaTriangle.setMap(null);
@@ -962,7 +1013,35 @@
               <path d="M14 4l0 4l-6 0l0 -4" />
             </svg>
           </button>
+          <div class="flexgrow , flexrow , popover" style="width: 100%;">
+            <div
+              style="color:#FFF;  background-color:#000; width: 100px; height:20px;"
+            >
+              Dead Zone
+            </div>
+            <div
+              style="color:#FFF;  background-color:rgb(0, 60, 255); width: 100px; height:20px;"
+            >
+              Event Zone
+            </div>
+          </div>
         </div>
+      {:else if currentPopover === "PopoverTickets"}
+        <button
+          class="squarebutton"
+          on:click={() => {
+            currentPopover = "PopoverinitialState";
+            bermudaTriangle.setMap(null);
+            newUserPolygon = null;
+          }}
+        >
+          <svg width="44" height="44" viewBox="0 0 24 24">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+            <path d="M10 10l4 4m0 -4l-4 4" />
+          </svg>
+        </button>
+        <h1>yellow</h1>
       {/if}
     </div>
   </div>
